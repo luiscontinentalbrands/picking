@@ -1,0 +1,2301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Continental Brands Warehouse Picking App</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:#f4f6f9;color:#222;min-height:100vh}
+.topbar{background:#1F3864;color:#fff;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.topbar h1{font-size:16px;font-weight:700}
+.mode-btns{display:flex;gap:8px}
+.mode-btns button{background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3);padding:6px 14px;border-radius:6px;cursor:pointer;font-size:13px}
+.mode-btns button.active{background:#fff;color:#1F3864;font-weight:700}
+.container{max-width:960px;margin:0 auto;padding:20px}
+.card{background:#fff;border-radius:10px;border:1px solid #e0e4ea;padding:20px;margin-bottom:16px}
+.card h2{font-size:15px;font-weight:700;color:#1F3864;margin-bottom:14px}
+.fl{display:block;font-size:12px;font-weight:700;color:#555;margin-bottom:4px;margin-top:10px}
+input,textarea,select{width:100%;padding:9px 12px;border:1px solid #d0d5dd;border-radius:6px;font-size:14px;color:#222;background:#fff;outline:none}
+input:focus,textarea:focus{border-color:#378ADD;box-shadow:0 0 0 2px #e6f1fb}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;align-items:end}
+.btn{padding:9px 20px;border-radius:6px;border:none;cursor:pointer;font-size:14px;font-weight:700;display:inline-block}
+.bp{background:#1F3864;color:#fff}.bp:hover{background:#2E5090}
+.bs{background:#1D9E75;color:#fff}.bs:hover{background:#0F6E56}
+.bw{background:#f0a500;color:#fff}.bw:hover{background:#cc8c00}
+.bd{background:#E24B4A;color:#fff}
+.btn-sm{padding:5px 12px;font-size:12px;border-radius:5px;border:none;cursor:pointer;font-weight:700}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.b-pend{background:#FFF3CD;color:#856404}
+.b-part{background:#CCE5FF;color:#004085}
+.b-done{background:#D4EDDA;color:#155724}
+.b-open{background:#F8D7DA;color:#721C24}
+.b-rep{background:#fff3e0;color:#e65100}
+.b-urgent{background:#E24B4A;color:#fff;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.7}}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#f0f4f8;padding:8px 10px;text-align:left;font-weight:700;color:#555;border-bottom:2px solid #e0e4ea}
+td{padding:8px 10px;border-bottom:1px solid #f0f0f0;vertical-align:middle}
+.srch{display:flex;gap:10px;margin-bottom:14px}
+.srch input{flex:1;font-size:15px;padding:10px 14px}
+.ohdr{background:#E6F1FB;border-radius:8px;padding:14px 16px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.ohdr .ot{font-size:16px;font-weight:700;color:#0C447C}
+.ohdr .os{font-size:12px;color:#185FA5;margin-top:3px}
+.pl{background:#fff;border:1px solid #e0e4ea;border-radius:8px;padding:14px;margin-bottom:10px}
+.pl.done{border-color:#1D9E75;background:#f0fff8}
+.pl.skipped-line{border-color:#ccc;background:#f9f9f9;opacity:0.75}
+.pl.repl{border-color:#f0a500;background:#fffbf0}
+.pl.done .ldesc{text-decoration:line-through;color:#888}
+.lhdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;gap:8px;flex-wrap:wrap}
+.ldesc{font-size:14px;font-weight:700;color:#222;flex:1}
+.lmeta{display:flex;gap:8px;font-size:12px;margin-bottom:10px;flex-wrap:wrap}
+.lmeta span{padding:3px 8px;border-radius:4px}
+.tl{background:#FFF3CD;color:#856404}
+.tq{background:#CCE5FF;color:#004085}
+.ts{background:#f4f6f9;color:#555}
+.pbw{height:6px;background:#e0e4ea;border-radius:3px;margin:8px 0 12px}
+.pbf{height:100%;background:#1D9E75;border-radius:3px;transition:width 0.3s}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+.sc{background:#fff;border-radius:8px;border:1px solid #e0e4ea;padding:14px;text-align:center}
+.sc .v{font-size:26px;font-weight:700;color:#1F3864}
+.sc .l{font-size:11px;color:#888;margin-top:2px}
+.pa{font-family:monospace;font-size:12px;min-height:120px}
+.tabs{display:flex;gap:4px;border-bottom:2px solid #e0e4ea;margin-bottom:16px}
+.tab{padding:8px 18px;cursor:pointer;font-size:13px;font-weight:700;color:#888;border-bottom:3px solid transparent;margin-bottom:-2px}
+.tab.active{color:#1F3864;border-bottom-color:#1F3864}
+.al{padding:10px 14px;border-radius:6px;font-size:13px;margin-bottom:12px}
+.al-ok{background:#D4EDDA;color:#155724;border:1px solid #C3E6CB}
+.al-wn{background:#FFF3CD;color:#856404;border:1px solid #FFEEBA}
+.al-er{background:#F8D7DA;color:#721C24;border:1px solid #F5C6CB}
+.al-in{background:#CCE5FF;color:#004085;border:1px solid #B8DAFF}
+.cbanner{background:#1D9E75;color:#fff;border-radius:8px;padding:16px;text-align:center;font-size:15px;font-weight:700;margin-bottom:16px}
+.pibar{background:#f0f4f8;border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:#444;display:flex;gap:16px;flex-wrap:wrap;align-items:center}
+.pibar strong{color:#1F3864}
+.repbox{background:#fff8e1;border:1px dashed #f0a500;border-radius:6px;padding:10px;margin-top:8px}
+.repbox label{font-size:11px;font-weight:700;color:#e65100;display:block;margin-bottom:4px}
+.howto{background:#E6F1FB;border-radius:8px;padding:16px;margin-bottom:16px;font-size:13px;line-height:1.8;color:#0C447C}
+.howto h3{font-size:14px;font-weight:700;margin-bottom:8px;color:#1F3864}
+.howto ol{padding-left:18px}
+.order-list{max-height:420px;overflow-y:auto;border:1px solid #e0e4ea;border-radius:8px;margin-bottom:14px}
+.order-list-item{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid #f0f0f0;cursor:pointer;transition:background 0.1s;gap:10px;flex-wrap:wrap}
+.order-list-item:last-child{border-bottom:none}
+.order-list-item:hover{background:#f0f4f8}
+.order-list-item.selected{background:#E6F1FB;border-left:3px solid #378ADD}
+.order-list-item.done-order{background:#f0fff8}
+.order-list-item.overdue{background:#fff5f5}
+.oli-left{display:flex;flex-direction:column;gap:3px;flex:1;min-width:0}
+.oli-no{font-size:14px;font-weight:700;color:#1F3864}
+.oli-cust{font-size:12px;color:#666}
+.oli-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:2px}
+.oli-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0}
+.due-badge{font-size:11px;font-weight:700;padding:3px 8px;border-radius:4px}
+.due-today{background:#FFF3CD;color:#856404}
+.due-overdue{background:#F8D7DA;color:#721C24}
+.due-ok{background:#f4f6f9;color:#555}
+.stock-warn{background:#F8D7DA;border:1px solid #f5c6cb;border-radius:8px;padding:12px 14px;margin-bottom:12px;font-size:13px}
+.stock-warn .sw-title{font-weight:700;color:#721C24;font-size:14px;margin-bottom:4px}
+.stock-warn .sw-pct{font-size:22px;font-weight:700;color:#E24B4A}
+.stock-ok{background:#D4EDDA;border:1px solid #c3e6cb;border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:13px;color:#155724;font-weight:700}
+.order-list-filter{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;align-items:center}
+.order-list-filter input{flex:1;min-width:150px}
+.filter-btn{padding:5px 12px;border-radius:5px;border:1px solid #d0d5dd;background:#fff;font-size:12px;cursor:pointer;font-weight:700;color:#555}
+.filter-btn.active{background:#1F3864;color:#fff;border-color:#1F3864}
+.back-btn{display:flex;align-items:center;gap:6px;background:none;border:none;color:#185FA5;font-size:13px;font-weight:700;cursor:pointer;padding:0;margin-bottom:12px}
+.back-btn:hover{color:#0C447C}
+@media(max-width:768px){
+  /* Topbar — stack logo and buttons on small screens */
+  .topbar{padding:8px 12px;gap:6px}
+  .topbar>div:first-child>div>div:first-child{font-size:13px}
+  .topbar>div:first-child>div>div:last-child{font-size:10px}
+  .topbar>div:first-child img{height:34px}
+  .mode-btns button{padding:5px 10px;font-size:12px}
+  
+  /* Tabs — scrollable horizontal on mobile */
+  .tabs{overflow-x:auto;overflow-y:hidden;white-space:nowrap;display:flex;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:2px}
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{flex-shrink:0;padding:8px 12px;font-size:12px}
+  
+  /* Container padding */
+  .container{padding:10px}
+  
+  /* Stats grid */
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .stats-kpi{padding:10px}
+  .stats-kpi .kv{font-size:22px}
+  
+  /* Forms */
+  .row2,.row3{grid-template-columns:1fr}
+  
+  /* Cards */
+  .card{padding:14px}
+  
+  /* Order list items */
+  .order-list-item{padding:10px 12px}
+  .oli-no{font-size:13px}
+  
+  /* Pick line inputs */
+  .pick-fields{grid-template-columns:1fr 1fr}
+  
+  /* Manager how-to grid */
+  #managerHowTo{grid-template-columns:1fr!important}
+  
+  /* Tables — horizontal scroll */
+  table{font-size:12px}
+  div[style*="overflow-x:auto"]{-webkit-overflow-scrolling:touch}
+  
+  /* Pibar */
+  .pibar{padding:8px 10px;gap:8px;font-size:12px}
+  
+  /* Buttons */
+  .btn{padding:8px 14px;font-size:13px}
+}
+@media(max-width:400px){
+  .tabs .tab{padding:7px 10px;font-size:11px}
+  .mode-btns button{padding:4px 8px;font-size:11px}
+  .topbar>div:first-child img{height:28px}
+}
+.stats-kpi{background:#fff;border-radius:8px;border:1px solid #e0e4ea;padding:14px;text-align:center}
+.stats-kpi .kv{font-size:28px;font-weight:700;color:#1F3864}
+.stats-kpi .kl{font-size:11px;color:#888;margin-top:2px;text-transform:uppercase;letter-spacing:0.4px}
+.picker-row-top{background:#E6F1FB}
+.bar-cell{display:flex;align-items:center;gap:8px}
+.perf-bar{height:8px;border-radius:4px;background:#378ADD;min-width:4px;transition:width 0.4s}
+.trophy{font-size:14px}
+.upload-zone{border:2px dashed #378ADD;border-radius:10px;padding:32px 20px;text-align:center;cursor:pointer;transition:background 0.2s;background:#f8fbff;margin-bottom:16px}
+.upload-zone:hover,.upload-zone.drag{background:#E6F1FB;border-color:#185FA5}
+.upload-zone .uz-icon{font-size:36px;margin-bottom:8px}
+.upload-zone .uz-title{font-size:15px;font-weight:700;color:#1F3864;margin-bottom:4px}
+.upload-zone .uz-sub{font-size:12px;color:#888}
+.sheet-preview{background:#f4f6f9;border-radius:8px;padding:12px;font-size:12px;margin-top:10px;font-family:monospace;max-height:120px;overflow-y:auto}
+.proc-step{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f0f0f0;font-size:13px}
+.proc-step .ps-icon{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.ps-done{background:#D4EDDA;color:#155724}
+.ps-wait{background:#f4f6f9;color:#aaa}
+.ps-err{background:#F8D7DA;color:#721C24}
+
+/* ── Print / Invoice styles ─────────────────────────────────── */
+.inv-btn{background:#1F3864;color:#fff;border:none;padding:7px 16px;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer}
+.inv-btn:hover{background:#2E5090}
+#invoiceModal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.55);z-index:9999;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto}
+#invoiceModal.open{display:flex}
+#invoiceBox{background:#fff;border-radius:10px;width:100%;max-width:820px;padding:0;overflow:hidden;margin:auto}
+#invoiceContent{padding:32px 36px;font-family:Arial,sans-serif;color:#222;font-size:13px}
+.inv-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;padding-bottom:16px;border-bottom:2px solid #1F3864}
+.inv-logo img{height:50px}
+.inv-title{font-size:22px;font-weight:700;color:#1F3864;text-align:right}
+.inv-subtitle{font-size:12px;color:#888;margin-top:3px;text-align:right}
+.inv-meta{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+.inv-meta-box{background:#f8f9fa;border-radius:6px;padding:12px 14px}
+.inv-meta-box .lbl{font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:#888;margin-bottom:4px}
+.inv-meta-box .val{font-size:14px;font-weight:700;color:#1F3864}
+.inv-meta-box .sub{font-size:12px;color:#555;margin-top:2px}
+.inv-table{width:100%;border-collapse:collapse;margin-bottom:20px}
+.inv-table th{background:#1F3864;color:#fff;padding:8px 10px;text-align:left;font-size:12px}
+.inv-table td{padding:7px 10px;border-bottom:1px solid #eee;font-size:12px}
+.inv-table tr:nth-child(even) td{background:#f8f9fa}
+.inv-table .lot-cell{font-family:monospace;font-size:11px;color:#555}
+.inv-table .qty-cell{text-align:center;font-weight:700}
+.inv-totals{border-top:2px solid #1F3864;padding-top:12px;text-align:right;margin-bottom:20px}
+.inv-totals .row{display:flex;justify-content:flex-end;gap:24px;margin-bottom:4px;font-size:13px}
+.inv-totals .total-row{font-size:15px;font-weight:700;color:#1F3864}
+.inv-footer{border-top:1px solid #ddd;padding-top:12px;font-size:11px;color:#aaa;text-align:center}
+.inv-sig{display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-top:24px}
+.inv-sig-box{border-top:1px solid #333;padding-top:6px;font-size:11px;color:#555;text-align:center}
+.inv-status-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700}
+.inv-modal-toolbar{background:#f4f6f9;padding:12px 20px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #ddd}
+.inv-modal-toolbar h3{font-size:14px;font-weight:700;color:#1F3864}
+.inv-warn{background:#FFF3CD;border:1px solid #FFEEBA;border-radius:6px;padding:10px;font-size:12px;color:#856404;margin-bottom:14px}
+@media print{
+  body *{visibility:hidden}
+  #invoiceContent,#invoiceContent *{visibility:visible}
+  #invoiceContent{position:fixed;left:0;top:0;width:100%;padding:20px}
+  #invoiceModal,#invoiceBox{display:block!important;position:static;background:none;padding:0;max-width:none}
+  .inv-modal-toolbar{display:none}
+}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+</head>
+<body>
+<div class="topbar">
+  <div style="display:flex;align-items:center;gap:10px;min-width:0;flex:1">
+    <img src="https://static.wixstatic.com/media/e8e3a2_1f847f848ad746e8b8328f8c4c5e1efd~mv2.gif" alt="Continental Brands" style="height:44px;width:auto;object-fit:contain;flex-shrink:0">
+    <div style="min-width:0">
+      <div style="font-size:15px;font-weight:700;line-height:1.2;white-space:nowrap">Continental Brands</div>
+      <div style="font-size:11px;opacity:0.8;font-weight:400;white-space:nowrap">Warehouse Picking App</div>
+    </div>
+  </div>
+  <div class="mode-btns" style="flex-shrink:0">
+    <button id="btnPicker" class="active" onclick="setMode('picker')">Picker</button>
+    <button id="btnManager" onclick="setMode('manager')">Manager</button>
+  </div>
+</div>
+<div class="container">
+
+<!-- PICKER MODE -->
+<div id="pickerMode">
+  <div class="card" id="signInCard">
+    <h2>Sign in to start picking</h2>
+    <div class="row2">
+      <div><label class="fl">Picker name *</label><input type="text" id="pickerName" placeholder="Your full name..."></div>
+      <div><label class="fl">Picking date</label><input type="date" id="pickerDate"></div>
+    </div>
+    <div style="margin-top:14px"><button class="btn bp" onclick="signIn()">Start picking</button></div>
+    <div id="signInAlert" style="margin-top:10px"></div>
+  </div>
+  <div id="pickerMain" style="display:none">
+    <div class="pibar">
+      <span>Picker: <strong id="dName"></strong></span>
+      <span>Date: <strong id="dDate"></strong></span>
+      <span style="margin-left:auto;cursor:pointer;color:#E24B4A;font-size:12px" onclick="signOut()">Sign out</span>
+    </div>
+    <input type="hidden" id="orderSearch" value="">
+    <div id="orderSelectView">
+      <div class="card">
+        <h2>Select an order to pick</h2>
+        <div class="order-list-filter">
+          <input type="text" id="orderFilterInput" placeholder="Search order no or customer..." oninput="renderOrderList()">
+          <button class="filter-btn active" id="fAll" onclick="setFilter('all')">All</button>
+          <button class="filter-btn" id="fOpen" onclick="setFilter('open')">Not started</button>
+          <button class="filter-btn" id="fPart" onclick="setFilter('partial')">In progress</button>
+          <button class="filter-btn" id="fDone" onclick="setFilter('done')">Complete</button>
+        </div>
+        <div class="order-list" id="orderListPanel"></div>
+        <div id="pickerAlert"></div>
+      </div>
+    </div>
+    <div id="orderPickingView" style="display:none">
+      <button class="back-btn" onclick="backToList()">&#8592; Back to order list</button>
+      <div id="orderView"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MANAGER MODE -->
+<div id="managerMode" style="display:none">
+  <div class="tabs">
+    <div class="tab active" id="tDash" onclick="showTab('Dash')">Dashboard</div>
+    <div class="tab" id="tLoad" onclick="showTab('Load')">Load pick list</div>
+    <div class="tab" id="tSumm" onclick="showTab('Summ')">Pick summary</div>
+    <div class="tab" id="tStats" onclick="showTab('Stats')">Picking stats</div>
+    <div class="tab" id="tHistory" onclick="showTab('History')">Order history</div>
+    <div class="tab" id="tExport" onclick="showTab('Export')">AccountMate export</div>
+    <div class="tab" id="tStock" onclick="showTab('Stock')">Stock</div>
+  </div>
+  <div id="pDash">
+    <!-- Manager How-To Banner -->
+    <div class="card" style="background:#1F3864;color:#fff;margin-bottom:12px;padding:16px 20px">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+        <div>
+          <div style="font-size:15px;font-weight:700;margin-bottom:4px">Welcome — Manager Dashboard</div>
+          <div style="font-size:12px;opacity:0.85">Follow these steps each morning to get your pickers started</div>
+        </div>
+        <button onclick="var el=document.getElementById('managerHowTo');el.style.display=el.style.display==='none'?'grid':'none'" style="background:rgba(255,255,255,0.2);color:#fff;border:1px solid rgba(255,255,255,0.4);padding:6px 14px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700">Show / Hide</button>
+      </div>
+      <div id="managerHowTo" style="margin-top:14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px">
+        <div style="background:rgba(255,255,255,0.12);border-radius:8px;padding:12px">
+          <div style="font-size:20px;margin-bottom:6px">1️⃣</div>
+          <div style="font-weight:700;font-size:13px;margin-bottom:4px">Load Pick List</div>
+          <div style="font-size:12px;opacity:0.85">Click <strong>Load pick list</strong> tab → drag and drop your <strong>Orders.xlsx</strong> → app reads both sheets and loads all orders. All tablets receive orders automatically via sync.</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.12);border-radius:8px;padding:12px">
+          <div style="font-size:20px;margin-bottom:6px">2️⃣</div>
+          <div style="font-weight:700;font-size:13px;margin-bottom:4px">Pickers Start</div>
+          <div style="font-size:12px;opacity:0.85">Pickers click <strong>Picker</strong> → sign in with name → tap an order from the list → confirm each pick line with qty and lot number.</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.12);border-radius:8px;padding:12px">
+          <div style="font-size:20px;margin-bottom:6px">3️⃣</div>
+          <div style="font-weight:700;font-size:13px;margin-bottom:4px">Monitor Progress</div>
+          <div style="font-size:12px;opacity:0.85">Dashboard updates live as pickers work. 🟢 Green = complete &nbsp;🔵 Blue = in progress &nbsp;🔴 Red = not started. Click <strong>View</strong> on any order to see details.</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.12);border-radius:8px;padding:12px">
+          <div style="font-size:20px;margin-bottom:6px">4️⃣</div>
+          <div style="font-weight:700;font-size:13px;margin-bottom:4px">Print Invoices</div>
+          <div style="font-size:12px;opacity:0.85">Click <strong>📄 Invoice</strong> next to any order → delivery note opens → click <strong>Print / Save PDF</strong> to print or save.</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.12);border-radius:8px;padding:12px">
+          <div style="font-size:20px;margin-bottom:6px">5️⃣</div>
+          <div style="font-weight:700;font-size:13px;margin-bottom:4px">Export to AccountMate</div>
+          <div style="font-size:12px;opacity:0.85">Click <strong>AccountMate export</strong> tab → download CSV per order → import directly into AccountMate. Or download all as ZIP.</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.12);border-radius:8px;padding:12px">
+          <div style="font-size:20px;margin-bottom:6px">6️⃣</div>
+          <div style="font-weight:700;font-size:13px;margin-bottom:4px">View Picking Stats</div>
+          <div style="font-size:12px;opacity:0.85">Click <strong>Picking stats</strong> tab → see performance by picker, daily totals, units picked, replacement lots. Export as CSV for records.</div>
+        </div>
+      </div>
+    </div>
+    <div class="stats" id="statsRow"></div>
+    <div class="card"><h2>All orders</h2><div id="ordersTable"></div></div>
+  </div>
+  <div id="pLoad" style="display:none">
+    <!-- Firebase sync status - auto connects, no config needed -->
+    <div class="card" id="firebaseStatusCard" style="margin-bottom:12px;background:#f0fff8;border:1px solid #C3E6CB">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <span id="fbConnectStatus" style="font-size:13px;font-weight:700;color:#155724">&#9679; Connecting to sync server...</span>
+        <span style="font-size:12px;color:#888">All 4 tablets will sync automatically when connected to WiFi</span>
+      </div>
+    </div>
+
+    <div class="howto">
+      <h3>Daily workflow — no Claude needed</h3>
+      <ol>
+        <li>Each morning, export your orders from your system as usual — keep it as <strong>.xlsx</strong></li>
+        <li>Make sure the file has two sheets: <strong>"open sale order"</strong> (orders) and <strong>"Items availabe"</strong> (stock &amp; lots)</li>
+        <li>Click the upload area below or drag and drop the file</li>
+        <li>The app reads both sheets, matches items to lot numbers, and loads all orders automatically</li>
+        <li>All pickers see the updated orders immediately — no CSV, no Claude, no copy-paste</li>
+      </ol>
+      <div style="margin-top:8px;color:#185FA5"><strong>Tip:</strong> Save this app to a shared network drive or Google Drive. Everyone opens the same file. You upload once in the morning — done.</div>
+    </div>
+    <div class="card">
+      <h2>Upload your Excel file</h2>
+      <p style="font-size:13px;color:#666;margin-bottom:14px">Upload your <strong>Orders.xlsx</strong> file directly — the app will read the <strong>"open sale order"</strong> and <strong>"Items availabe"</strong> sheets automatically and generate the pick list.</p>
+      <!-- Currently loaded file info -->
+      <div id="currentFileInfo" style="display:none;background:#f0fff8;border:1px solid #C3E6CB;border-radius:8px;padding:12px 16px;margin-bottom:14px">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+          <div>
+            <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px">Currently loaded</div>
+            <div style="font-size:14px;font-weight:700;color:#155724" id="currentFileName">—</div>
+            <div style="font-size:12px;color:#555;margin-top:2px" id="currentFileDate">—</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:11px;color:#888;margin-bottom:2px">Orders loaded</div>
+            <div style="font-size:18px;font-weight:700;color:#1F3864" id="currentFileOrders">—</div>
+          </div>
+        </div>
+        <div style="margin-top:8px;font-size:12px;color:#856404;background:#FFF3CD;border-radius:4px;padding:6px 10px">
+          &#9888; Uploading a new file will <strong>replace</strong> the current pick list. Completed order history is always kept.
+        </div>
+      </div>
+
+      <div class="upload-zone" id="uploadZone" onclick="document.getElementById('xlsxFileInput').click()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="handleDrop(event)">
+        <div class="uz-icon">&#128196;</div>
+        <div class="uz-title">Click to upload or drag &amp; drop your Excel file</div>
+        <div class="uz-sub">Accepts .xlsx files &mdash; Orders.xlsx with "open sale order" + "Items availabe" sheets</div>
+      </div>
+      <input type="file" id="xlsxFileInput" accept=".xlsx,.xls" style="display:none" onchange="handleFileSelect(event)">
+      <div id="procSteps" style="display:none;margin-bottom:12px">
+        <div class="proc-step"><div class="ps-icon ps-wait" id="st1">1</div><span id="st1t">Reading Excel file...</span></div>
+        <div class="proc-step"><div class="ps-icon ps-wait" id="st2">2</div><span id="st2t">Reading open sale order sheet...</span></div>
+        <div class="proc-step"><div class="ps-icon ps-wait" id="st3">3</div><span id="st3t">Reading Items available sheet (stock &amp; lots)...</span></div>
+        <div class="proc-step"><div class="ps-icon ps-wait" id="st4">4</div><span id="st4t">Matching orders to lot numbers (FIFO)...</span></div>
+        <div class="proc-step"><div class="ps-icon ps-wait" id="st5">5</div><span id="st5t">Loading pick list into app...</span></div>
+      </div>
+      <div id="loadAlert" style="margin-top:10px"></div>
+      <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn-sm" style="background:#f4f6f9;border:1px solid #ddd;color:#444" onclick="loadSample()">Load sample data instead</button>
+        <button class="btn-sm bd" onclick="clearAll()">Clear all data</button>
+      </div>
+    </div>
+  </div>
+  <div id="pSumm" style="display:none">
+    <div class="card"><h2>Completed picks</h2><div id="summaryContent"></div></div>
+  </div>
+  <div id="pStats" style="display:none">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+      <div>
+        <label class="fl" style="margin-top:0">Filter by date</label>
+        <select id="statsDateFilter" onchange="renderStats()" style="width:auto;min-width:180px">
+          <option value="all">All days</option>
+        </select>
+      </div>
+      <button class="btn-sm" style="background:#1F3864;color:#fff;border:none;padding:7px 16px" onclick="exportStatsCSV()">Export CSV</button>
+    </div>
+
+    <!-- Daily summary cards -->
+    <div id="statsDailyCards" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:16px"></div>
+
+    <!-- Per picker table -->
+    <div class="card" style="margin-bottom:16px">
+      <h2>Performance by picker</h2>
+      <div id="statsPickerTable"></div>
+    </div>
+
+    <!-- Daily breakdown table -->
+    <div class="card">
+      <h2>Daily picking breakdown</h2>
+      <div id="statsDailyTable"></div>
+    </div>
+  </div>
+
+  <div id="pHistory" style="display:none">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+      <div>
+        <label class="fl" style="margin-top:0">Filter by date</label>
+        <select id="historyDateFilter" onchange="renderHistory()" style="width:auto;min-width:180px">
+          <option value="all">All days</option>
+        </select>
+      </div>
+      <button class="btn-sm" style="background:#1F3864;color:#fff;border:none;padding:7px 16px" onclick="exportHistoryCSV()">Export CSV</button>
+    </div>
+    <div id="historyCards" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:16px"></div>
+    <div class="card">
+      <h2>Completed orders history</h2>
+      <div id="historyTable"></div>
+    </div>
+  </div>
+
+  <div id="pExport" style="display:none">
+    <div class="card" style="margin-bottom:12px">
+      <h2>AccountMate import files</h2>
+      <p style="font-size:13px;color:#666;margin-bottom:14px">
+        Generates one CSV per order in the exact AccountMate import format.<br>
+        <strong>Format:</strong> Row 1 = <code>* | Customer N. | Date | Warehouse | S.O. N</code> &nbsp;|&nbsp; 
+        Row 2+ = <code>Customer N. | Item N. | Qty | Lot N.</code>
+      </p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:center">
+        <div>
+          <label class="fl" style="margin-top:0">Filter orders</label>
+          <select id="exportFilter" onchange="renderExportList()" style="width:auto;min-width:160px">
+            <option value="all">All orders</option>
+            <option value="done">Completed only</option>
+            <option value="partial">In progress only</option>
+          </select>
+        </div>
+        <div style="margin-left:auto;display:flex;gap:8px">
+          <button class="btn bp" onclick="downloadAllCSV()">Download all as ZIP</button>
+          <button class="btn-sm" style="background:#1D9E75;color:#fff;border:none;padding:7px 16px;border-radius:6px;font-weight:700" onclick="previewExport()">Preview format</button>
+        </div>
+      </div>
+      <div id="exportPreview" style="display:none;margin-bottom:16px;background:#f8f9fa;border:1px solid #e0e4ea;border-radius:8px;padding:14px">
+        <div style="font-size:12px;font-weight:700;color:#555;margin-bottom:6px">CSV PREVIEW — Order 127348</div>
+        <pre id="exportPreviewText" style="font-size:11px;font-family:monospace;color:#222;margin:0;overflow-x:auto"></pre>
+      </div>
+      <div id="exportOrderList"></div>
+    </div>
+  </div>
+
+  <div id="pStock" style="display:none">
+    <div class="card">
+      <h2>Current stock levels</h2>
+      <input type="text" id="stockSearch" placeholder="Search item, description or lot..." oninput="renderStock()" style="margin-bottom:12px">
+      <div id="stockTable"></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ── Invoice / Print Modal ──────────────────────────────────────────── -->
+<div id="invoiceModal">
+  <div id="invoiceBox">
+    <div class="inv-modal-toolbar">
+      <h3>Invoice / Delivery Note Preview</h3>
+      <div style="display:flex;gap:8px">
+        <button class="inv-btn" onclick="window.print()">&#128438; Print / Save PDF</button>
+        <button style="background:#E24B4A;color:#fff;border:none;padding:7px 16px;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer" onclick="closeInvoice()">Close</button>
+      </div>
+    </div>
+    <div id="invoiceContent"></div>
+  </div>
+</div>
+
+<script>
+const SAMPLE=[
+{"order":"127325","customer":"000S52","clientName":"Pick n Pay Sandton","dueDate":"2026-03-31","urgent":false,"lines":[{"itemNo":"16506","desc":"TASTY TREATS CHEZZY BITES 6 PACK SPRING ONION","lotNo":"10092017","lotQty":24,"qtyToPick":10,"qtyOrdered":10,"picked":0,"confirmed":false,"replacement":false}]},
+{"order":"127347","customer":"000G004","clientName":"Shoprite Centurion","dueDate":"2026-03-31","urgent":true,"lines":[{"itemNo":"12858","desc":"TT CRACKER MIX 400G","lotNo":"02062018","lotQty":40,"qtyToPick":28,"qtyOrdered":28,"picked":0,"confirmed":false,"replacement":false},{"itemNo":"16506","desc":"TASTY TREATS CHEZZY BITES 6 PACK SPRING ONION","lotNo":"10092017","lotQty":24,"qtyToPick":17,"qtyOrdered":17,"picked":0,"confirmed":false,"replacement":false}]},
+{"order":"127348","customer":"000G002","clientName":"Checkers Rosebank","dueDate":"2026-03-31","urgent":false,"lines":[{"itemNo":"12045","desc":"TT KRIT BACON 150G","lotNo":"02102017","lotQty":70,"qtyToPick":11,"qtyOrdered":11,"picked":0,"confirmed":false,"replacement":false},{"itemNo":"12141","desc":"RISI SIX LOVE 200G","lotNo":"26072018","lotQty":420,"qtyToPick":9,"qtyOrdered":9,"picked":0,"confirmed":false,"replacement":false},{"itemNo":"12487","desc":"DE VRIES GINGER 200G","lotNo":"05032018","lotQty":1060,"qtyToPick":47,"qtyOrdered":47,"picked":0,"confirmed":false,"replacement":false},{"itemNo":"12547","desc":"RISI LEMON CREAMS 175G","lotNo":"22082017","lotQty":396,"qtyToPick":32,"qtyOrdered":32,"picked":0,"confirmed":false,"replacement":false},{"itemNo":"12588","desc":"RISI MARIE 150G","lotNo":"12012017","lotQty":50,"qtyToPick":50,"qtyOrdered":51,"picked":0,"confirmed":false,"replacement":false},{"itemNo":"12588","desc":"RISI MARIE 150G","lotNo":"13012017","lotQty":30,"qtyToPick":1,"qtyOrdered":51,"picked":0,"confirmed":false,"replacement":false},{"itemNo":"12753","desc":"DE VRIES CHOICE ASSORTMENT 400G","lotNo":"10092017","lotQty":56,"qtyToPick":13,"qtyOrdered":13,"picked":0,"confirmed":false,"replacement":false},{"itemNo":"12790","desc":"TT KRIT SPRING ONION","lotNo":"03102017","lotQty":98,"qtyToPick":12,"qtyOrdered":12,"picked":0,"confirmed":false,"replacement":false},{"itemNo":"12858","desc":"TT CRACKER MIX 400G","lotNo":"02062018","lotQty":40,"qtyToPick":22,"qtyOrdered":22,"picked":0,"confirmed":false,"replacement":false},{"itemNo":"12869","desc":"DE VRIES CHOCO RINGS 150G","lotNo":"16032017","lotQty":200,"qtyToPick":8,"qtyOrdered":8,"picked":0,"confirmed":false,"replacement":false},{"itemNo":"12876","desc":"DE VRIES GINGER LEMON","lotNo":"09102017","lotQty":140,"qtyToPick":7,"qtyOrdered":7,"picked":0,"confirmed":false,"replacement":false},{"itemNo":"12883","desc":"De Vries Choc Double Velvet","lotNo":"29092017","lotQty":140,"qtyToPick":45,"qtyOrdered":45,"picked":0,"confirmed":false,"replacement":false},{"itemNo":"12890","desc":"De Vries Yoghurt Double Velvet","lotNo":"05102017","lotQty":195,"qtyToPick":19,"qtyOrdered":19,"picked":0,"confirmed":false,"replacement":false},{"itemNo":"12943","desc":"TT SALTEE LIGHTLY SALTED 200 GR","lotNo":"25082017","lotQty":30,"qtyToPick":1,"qtyOrdered":1,"picked":0,"confirmed":false,"replacement":false},{"itemNo":"24196","desc":"TT WAFERS STRAWBERRY 100G","lotNo":"03082017","lotQty":30,"qtyToPick":20,"qtyOrdered":20,"picked":0,"confirmed":false,"replacement":false},{"itemNo":"24202","desc":"TT WAFERS VANILLA 100G","lotNo":"21062017","lotQty":20,"qtyToPick":20,"qtyOrdered":23,"picked":0,"confirmed":false,"replacement":false},{"itemNo":"24841","desc":"TT CRACKER MIX 200G","lotNo":"28062018","lotQty":55,"qtyToPick":4,"qtyOrdered":4,"picked":0,"confirmed":false,"replacement":false}]},
+{"order":"127402","customer":"000D634","clientName":"Woolworths Fourways","dueDate":"2026-04-01","urgent":true,"lines":[{"itemNo":"12045","desc":"TT KRIT BACON 150G","lotNo":"02102017","lotQty":70,"qtyToPick":20,"qtyOrdered":20,"picked":0,"confirmed":false,"replacement":false},{"itemNo":"12487","desc":"DE VRIES GINGER 200G","lotNo":"05032018","lotQty":1060,"qtyToPick":280,"qtyOrdered":280,"picked":0,"confirmed":false,"replacement":false},{"itemNo":"12588","desc":"RISI MARIE 150G","lotNo":"12012017","lotQty":50,"qtyToPick":50,"qtyOrdered":140,"picked":0,"confirmed":false,"replacement":false},{"itemNo":"12876","desc":"DE VRIES GINGER LEMON","lotNo":"09102017","lotQty":140,"qtyToPick":20,"qtyOrdered":20,"picked":0,"confirmed":false,"replacement":false},{"itemNo":"82783","desc":"RISI MULTIPACK COMBO LEMON & MARIE","lotNo":"21092017","lotQty":474,"qtyToPick":150,"qtyOrdered":150,"picked":0,"confirmed":false,"replacement":false}]},
+{"order":"127476","customer":"000P105","clientName":"Spar Northgate","dueDate":"2026-04-02","urgent":false,"lines":[{"itemNo":"12045","desc":"TT KRIT BACON 150G","lotNo":"02102017","lotQty":70,"qtyToPick":54,"qtyOrdered":54,"picked":0,"confirmed":false,"replacement":false},{"itemNo":"12487","desc":"DE VRIES GINGER 200G","lotNo":"05032018","lotQty":1060,"qtyToPick":140,"qtyOrdered":140,"picked":0,"confirmed":false,"replacement":false},{"itemNo":"12790","desc":"TT KRIT SPRING ONION","lotNo":"03102017","lotQty":98,"qtyToPick":54,"qtyOrdered":54,"picked":0,"confirmed":false,"replacement":false},{"itemNo":"16483","desc":"TASTY TREATS CHEZZY BITES 6 PACK FRUIT CHUTNEY","lotNo":"01102017","lotQty":50,"qtyToPick":48,"qtyOrdered":48,"picked":0,"confirmed":false,"replacement":false},{"itemNo":"24189","desc":"TT WAFERS CHOCNUT 100G","lotNo":"01082017","lotQty":80,"qtyToPick":60,"qtyOrdered":60,"picked":0,"confirmed":false,"replacement":false}]}
+];
+
+let S={orders:[],stock:{},picker:null,pdate:null,drequest:null,dateLoaded:null,fileName:null,history:[],loadTimestamp:null};
+let activeFilter='all';
+function sv(){
+  try{
+    // Save full state to localStorage — persists across page reloads
+    const toSave = Object.assign({}, S);
+    delete toSave._locks; // don't persist lock state
+    localStorage.setItem('wpa3', JSON.stringify(toSave));
+  }catch(e){}
+  // Push to Firebase if connected
+  if(typeof fbConnected!=='undefined'&&fbConnected) pushToFirebase();
+}
+function ld(){
+  try{
+    const d=localStorage.getItem('wpa3');
+    if(d){
+      S=JSON.parse(d);
+      // Ensure _locks doesn't persist between sessions
+      S._locks={};
+    }
+  }catch(e){}
+}
+ld();
+// Only load sample data if no orders AND no Firebase connection coming
+// Real orders from Firebase or last Excel load are preserved via localStorage
+if(!S.orders||!S.orders.length){
+  S.orders=JSON.parse(JSON.stringify(SAMPLE));
+  rebuildStock();
+  sv();
+}
+
+function rebuildStock(){
+  S.stock={};
+  S.orders.forEach(o=>o.lines.forEach(l=>{
+    if(l.noStock) return; // skip lines with no stock
+    const k=l.itemNo+'__'+l.lotNo;
+    if(!S.stock[k]) S.stock[k]={itemNo:l.itemNo,desc:l.desc,lotNo:l.lotNo,warehouse:'FGWHOUSE',available:l.lotQty};
+  }));
+}
+
+function tod(){return new Date().toISOString().split('T')[0];}
+function nowt(){return new Date().toLocaleTimeString('en-ZA',{hour:'2-digit',minute:'2-digit'});}
+
+window.addEventListener('load',()=>{
+  // Restore date bar if we have data from previous session
+  if(S.orders && S.orders.length > 0 && S.drequest){
+    // Data already loaded from localStorage — render immediately
+    renderDash();
+    renderOrderList();
+  }
+  loadFirebaseConfig();
+  document.getElementById('pickerDate').value=tod();
+  if(S.picker){
+    document.getElementById('signInCard').style.display='none';
+    document.getElementById('pickerMain').style.display='block';
+    document.getElementById('dName').textContent=S.picker;
+    document.getElementById('dDate').textContent=S.pdate||tod();
+    document.getElementById('pickerName').value=S.picker;
+    renderOrderList();
+  }
+});
+
+function setMode(m){
+  document.getElementById('pickerMode').style.display=m==='picker'?'block':'none';
+  document.getElementById('managerMode').style.display=m==='manager'?'block':'none';
+  document.getElementById('btnPicker').className=m==='picker'?'active':'';
+  document.getElementById('btnManager').className=m==='manager'?'active':'';
+  if(m==='manager'){renderDash();renderStock();renderSumm();renderCurrentFileInfo();}
+}
+
+function showTab(t){
+  ['Dash','Load','Summ','Stats','History','Export','Stock'].forEach(x=>{
+    document.getElementById('p'+x).style.display='none';
+    document.getElementById('t'+x).className='tab';
+  });
+  document.getElementById('p'+t).style.display='block';
+  document.getElementById('t'+t).className='tab active';
+  if(t==='Stock') renderStock();
+  if(t==='Summ') renderSumm();
+  if(t==='Dash') renderDash();
+  if(t==='Stats') renderStats();
+  if(t==='History') renderHistory();
+  if(t==='Load') renderCurrentFileInfo();
+  if(t==='Export') renderExportList();
+}
+
+function signIn(){
+  const n=document.getElementById('pickerName').value.trim();
+  const d=document.getElementById('pickerDate').value||tod();
+  if(!n){document.getElementById('signInAlert').innerHTML='<div class="al al-wn">Please enter your name.</div>';return;}
+  S.picker=n; S.pdate=d; sv();
+  document.getElementById('signInCard').style.display='none';
+  document.getElementById('pickerMain').style.display='block';
+  document.getElementById('dName').textContent=n;
+  document.getElementById('dDate').textContent=d;
+  renderOrderList();
+}
+
+function signOut(){
+  // Release any active lock
+  if(currentLockedOrder) unlockOrder(currentLockedOrder);
+  S.picker=null; sv();
+  document.getElementById('signInCard').style.display='block';
+  document.getElementById('pickerMain').style.display='none';
+  document.getElementById('orderView').innerHTML='';
+  document.getElementById('orderSearch').value='';
+}
+
+function setFilter(f){
+  activeFilter=f;
+  ['All','Open','Part','Done'].forEach(x=>document.getElementById('f'+x).className='filter-btn');
+  document.getElementById('f'+f.charAt(0).toUpperCase()+f.slice(1)).className='filter-btn active';
+  renderOrderList();
+}
+
+function orderStatus(o){
+  const dl=o.lines.filter(l=>l.confirmed).length;
+  if(dl===o.lines.length) return 'done';
+  if(dl>0) return 'partial';
+  return 'open';
+}
+
+function dueDateLabel(o){
+  if(!o.dueDate) return null;
+  const today=new Date(); today.setHours(0,0,0,0);
+  const due=new Date(o.dueDate); due.setHours(0,0,0,0);
+  const diff=Math.round((due-today)/(1000*60*60*24));
+  if(diff<0) return {text:`Overdue by ${Math.abs(diff)} day${Math.abs(diff)>1?'s':''}`,cls:'due-overdue'};
+  if(diff===0) return {text:'Due today',cls:'due-today'};
+  if(diff===1) return {text:'Due tomorrow',cls:'due-today'};
+  return {text:`Due ${o.dueDate}`,cls:'due-ok'};
+}
+
+function renderOrderList(){
+  const panel=document.getElementById('orderListPanel');
+  const q=(document.getElementById('orderFilterInput')||{}).value||'';
+  let orders=S.orders.filter(o=>{
+    const st=orderStatus(o);
+    if(activeFilter==='open'&&st!=='open') return false;
+    if(activeFilter==='partial'&&st!=='partial') return false;
+    if(activeFilter==='done'&&st!=='done') return false;
+    if(q&&!o.order.includes(q)&&!(o.customer||'').toLowerCase().includes(q.toLowerCase())) return false;
+    return true;
+  });
+  // Sort: overdue first, then by due date, then not-started, then done
+  orders.sort((a,b)=>{
+    const da=a.dueDate?new Date(a.dueDate):new Date('9999-12-31');
+    const db=b.dueDate?new Date(b.dueDate):new Date('9999-12-31');
+    const sa=orderStatus(a); const sb=orderStatus(b);
+    if(sa==='done'&&sb!=='done') return 1;
+    if(sb==='done'&&sa!=='done') return -1;
+    return da-db;
+  });
+  if(!orders.length){
+    panel.innerHTML='<div style="text-align:center;padding:24px;color:#aaa;font-size:13px">No orders found.</div>';
+    return;
+  }
+  panel.innerHTML=orders.map(o=>{
+    const st=orderStatus(o);
+    const dl=o.lines.filter(l=>l.confirmed).length;
+    const pct=Math.round((dl/o.lines.length)*100);
+    const due=dueDateLabel(o);
+    const stLabel=st==='done'?'Complete':st==='partial'?'In progress':'Not started';
+    const stCls=st==='done'?'b-done':st==='partial'?'b-part':'b-open';
+    const rowCls=st==='done'?'done-order':due&&due.cls==='due-overdue'?'overdue':'';
+    return `<div class="order-list-item ${rowCls}" onclick="selectOrder('${o.order}')">
+      <div class="oli-left">
+        <div class="oli-no">Order ${o.order}
+          ${(()=>{const lk=getOrderLock(o.order);return lk?`<span style="background:#F8D7DA;color:#721C24;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;margin-left:6px">&#128274; ${lk.pickedBy}</span>`:''})()}
+        </div>
+        <div class="oli-cust">${o.customer}${o.clientName?' &mdash; <strong>'+o.clientName+'</strong>':''}</div>
+        ${o.urgent?'<span class="badge b-urgent" style="font-size:10px;margin-top:2px">URGENT</span>':''}
+        <div class="oli-meta">
+          <span class="badge ${stCls}" style="font-size:10px">${stLabel}</span>
+          <span style="font-size:11px;color:#888">${o.lines.length} lines &nbsp;|&nbsp; ${dl}/${o.lines.length} picked &nbsp;|&nbsp; ${pct}%</span>
+          ${(()=>{
+            if(st==='done') return '<span style="background:#D4EDDA;color:#155724;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700">Complete</span>';
+            const f=calcFulfilment(o);
+            const noStockCount=o.lines.filter(l=>!l.confirmed&&(l.noStock===true||l.lotNo==='NO STOCK')).length;
+            if(!f.canFulfil){
+              if(noStockCount>0) return `<span style="background:#F8D7DA;color:#721C24;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700">&#9888; ${noStockCount} item${noStockCount>1?'s':''} no stock</span>`;
+              return `<span style="background:#F8D7DA;color:#721C24;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700">&#9888; Stock: ${f.pct}% fulfillable</span>`;
+            }
+            return '<span style="background:#D4EDDA;color:#155724;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700">&#10003; All stock available</span>';
+          })()}
+        </div>
+        <div style="width:100%;height:4px;background:#e0e4ea;border-radius:2px;margin-top:5px;max-width:200px">
+          <div style="height:100%;width:${pct}%;background:${st==='done'?'#1D9E75':'#378ADD'};border-radius:2px"></div>
+        </div>
+      </div>
+      <div class="oli-right">
+        ${due?`<span class="due-badge ${due.cls}">${due.text}</span>`:'<span class="due-badge due-ok">No due date</span>'}
+        <span style="font-size:11px;color:#888;margin-top:4px">Tap to pick</span>
+      </div>
+    </div>`;
+  }).join('');
+
+}
+
+function selectOrder(orderNo){
+  const o=S.orders.find(x=>x.order===orderNo);
+  if(!o) return;
+  // Check lock
+  const existingLock = getOrderLock(orderNo);
+  if(existingLock){
+    alert('Order '+orderNo+' is currently being picked by '+existingLock.pickedBy+'.');
+    return;
+  }
+  // Set lock
+  if(!S._locks) S._locks={};
+  if(S.picker){
+    S._locks[orderNo]={pickedBy:S.picker,lockedAt:Date.now(),expiresAt:Date.now()+300000};
+    if(fbConnected && fbLocksRef){
+      fbLocksRef.child(orderNo).set({pickedBy:S.picker,lockedAt:Date.now(),expiresAt:Date.now()+300000}).catch(()=>{});
+    }
+  }
+  openOrderView(o);
+}
+
+function openOrderView(o){
+  document.getElementById('orderSelectView').style.display='none';
+  document.getElementById('orderPickingView').style.display='block';
+  document.getElementById('orderPickingView').setAttribute('data-order', o.order);
+  renderOrder(o);
+  window.scrollTo(0,0);
+}
+
+function backToList(){
+  const pv = document.getElementById('orderPickingView');
+  const orderNo = pv ? pv.getAttribute('data-order') : '';
+  if(orderNo) unlockOrder(orderNo);
+  if(pv){ pv.style.display='none'; pv.removeAttribute('data-order'); }
+  document.getElementById('orderSelectView').style.display='block';
+  renderOrderList();
+  window.scrollTo(0,0);
+}
+
+function searchOrder(){
+  const q=document.getElementById('orderSearch')?document.getElementById('orderSearch').value.trim():'';
+  const a=document.getElementById('pickerAlert');
+  if(!q){a&&(a.innerHTML='<div class="al al-wn">Please enter an order number.</div>');return;}
+  const o=S.orders.find(x=>x.order===q);
+  if(!o){a&&(a.innerHTML=`<div class="al al-er">Order <strong>${q}</strong> not found.</div>`);return;}
+  selectOrder(q);
+}
+
+function calcFulfilment(order){
+  let totalRequired=0, totalCanFulfil=0, shortLines=[];
+  order.lines.forEach(l=>{
+    if(l.confirmed) return; // skip already picked
+    // noStock lines or zero qtyToPick = definitely cannot fulfil
+    if(l.noStock===true || l.lotNo==='NO STOCK'){
+      shortLines.push({itemNo:l.itemNo,desc:l.desc,required:l.qtyOrdered||0,available:0,short:l.qtyOrdered||0,noStock:true});
+      totalRequired += l.qtyOrdered||1;
+      return;
+    }
+    const sk=l.itemNo+'__'+l.lotNo;
+    const avail=S.stock[sk]!==undefined?S.stock[sk].available:l.lotQty;
+    const req=Math.ceil(l.qtyToPick);
+    totalRequired+=req;
+    const canPick=Math.min(avail, req);
+    totalCanFulfil+=canPick;
+    if(canPick<req){
+      shortLines.push({itemNo:l.itemNo,desc:l.desc,required:req,available:avail,short:req-canPick});
+    }
+  });
+  const pct=totalRequired>0?Math.round((totalCanFulfil/totalRequired)*100):100;
+  return {pct,shortLines,totalRequired,totalCanFulfil,canFulfil:shortLines.length===0};
+}
+
+function renderOrder(order){
+  const done=order.lines.filter(l=>l.confirmed).length;
+  const tot=order.lines.length;
+  const pct=Math.round((done/tot)*100);
+  // Lines that need picking = non-noStock, non-confirmed lines
+  const pendingPickable=order.lines.filter(l=>!l.confirmed&&!l.noStock&&l.qtyToPick>0).length;
+  const sc=done===tot?'done':done>0?'part':'open';
+  const fulfilment=calcFulfilment(order);
+  const allDone=order.lines.every(l=>l.confirmed);
+  let html=`<div class="ohdr">
+    <div><div class="ot">Order ${order.order}</div><div class="os">Customer: ${order.customer}${order.clientName?' &mdash; <strong>'+order.clientName+'</strong>':''} &nbsp;|&nbsp; ${tot} lines &nbsp;|&nbsp; ${done}/${tot} picked</div></div>
+      ${order.urgent?'<span class="badge b-urgent" style="font-size:11px;margin-top:4px;display:inline-block">URGENT ORDER</span>':''}
+    <span class="badge ${sc==='done'?'b-done':sc==='part'?'b-part':'b-open'}">${sc==='done'?'Complete':sc==='part'?'In progress':'Not started'}</span>
+  </div>
+  <div class="pbw"><div class="pbf" style="width:${pct}%"></div></div>`;
+  if(!allDone){
+    if(!fulfilment.canFulfil){
+      const nsLines=fulfilment.shortLines.filter(s=>s.noStock);
+      const shortLines=fulfilment.shortLines.filter(s=>!s.noStock);
+      let warnHtml='<div class="stock-warn"><div class="sw-title">&#9888; This order cannot be fully fulfilled</div>';
+      if(nsLines.length) warnHtml+=`<div style="margin:6px 0;font-size:13px;color:#721C24"><strong>${nsLines.length} item${nsLines.length>1?'s':''} have NO STOCK in FGWHOUSE</strong> — skip or use replacement lot to continue:</div>`+nsLines.map(s=>`<div style="margin-top:3px;font-size:12px;color:#721C24">&#9888; ${s.itemNo} ${s.desc}</div>`).join('');
+      if(shortLines.length) warnHtml+=`<div style="margin-top:8px"><span class="sw-pct">${fulfilment.pct}%</span> <span style="font-size:13px;color:#721C24"> of remaining items can be fulfilled</span></div>`+shortLines.map(s=>`<div style="margin-top:3px;font-size:12px;color:#721C24">- ${s.itemNo} ${s.desc}: need ${s.required}, available ${s.available}</div>`).join('');
+      warnHtml+='</div>';
+      html+=warnHtml;
+    } else if(pendingPickable>0){
+      html+=`<div class="stock-ok">&#10003; All remaining items have sufficient stock — ready to pick.</div>`;
+    }
+  }
+  if(allDone) html+=`<div class="cbanner">All items picked! Order ${order.order} complete — ${S.picker} — ${S.pdate} ${nowt()}</div>`;
+
+  order.lines.forEach((line,i)=>{
+    const sk=line.itemNo+'__'+line.lotNo;
+    const avail=S.stock[sk]!==undefined?S.stock[sk].available:line.lotQty;
+    const isRep=line.replacement&&line.replacementLot;
+    const isSkip=line.skipped;
+    html+=`<div class="pl ${line.confirmed?(isSkip?'skipped-line':isRep?'repl':'done'):''}" id="pl_${order.order}_${i}">
+      <div class="lhdr">
+        <div class="ldesc">${line.itemNo} — ${line.desc}</div>
+        ${line.confirmed?(isSkip?'<span class="badge" style="background:#e0e0e0;color:#555">Skipped — no stock</span>':isRep?'<span class="badge b-rep">Picked — replacement lot</span>':'<span class="badge b-done">Picked</span>'):'<span class="badge b-open">Pending</span>'}
+      </div>
+      <div class="lmeta">
+        <span class="tl">Lot: ${line.lotNo}</span>
+        <span style="background:#E6F1FB;color:#0C447C;padding:3px 8px;border-radius:4px">FGWHOUSE</span>
+        <span class="tq">Qty required: ${Math.ceil(line.qtyToPick)}</span>
+        <span class="ts">Stock on hand: ${Math.floor(avail)}</span>
+        ${line.confirmed&&!line.skipped?`<span style="background:#D4EDDA;color:#155724">Picked: ${line.picked} at ${line.pickedTime||''}</span>`:''}
+        ${isRep?`<span style="background:#fff3e0;color:#e65100">Replacement lot used: ${line.replacementLot}</span>`:''}
+      </div>`;
+    if(!line.confirmed){
+      // Only flag as no-stock if explicitly marked — NOT based on qtyToPick
+      const isNoStock = line.noStock===true || line.lotNo==='NO STOCK';
+      if(isNoStock){
+        html+=`<div style="margin-top:10px">
+          <div style="background:#F8D7DA;border-radius:6px;padding:10px 14px;font-size:13px;color:#721C24;margin-bottom:8px">
+            <strong>No stock available in FGWHOUSE.</strong> Skip this item or use a replacement lot.
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn-sm" style="background:#888;color:#fff;border:none;padding:7px 14px" onclick="skipLine('${order.order}',${i})">Skip this item</button>
+            <button class="btn-sm" style="background:#fff3e0;border:1px solid #f0a500;color:#e65100;padding:7px 12px" onclick="toggleRep('${order.order}',${i})">Use replacement lot</button>
+          </div>
+          <div class="repbox" id="rb_${order.order}_${i}" style="display:none;margin-top:8px">
+            <label>Enter replacement lot details:</label>
+            <div style="display:flex;gap:8px;margin-top:4px;flex-wrap:wrap;align-items:flex-end">
+              <div><label class="fl" style="margin-top:0">Qty</label><input type="number" id="q_${order.order}_${i}" placeholder="Qty..." style="width:90px"></div>
+              <div style="flex:1"><label class="fl" style="margin-top:0">Replacement lot no</label><input type="text" id="rl_${order.order}_${i}" placeholder="Lot number..."></div>
+              <button class="btn bw btn-sm" style="padding:9px 14px;margin-bottom:1px" onclick="confirmReplacement('${order.order}',${i})">Confirm replacement</button>
+            </div>
+          </div>
+        </div>`;
+      } else {
+        html+=`<div class="row3" style="margin-top:8px">
+          <div><label class="fl">Qty picked *</label><input type="number" id="q_${order.order}_${i}" value="${Math.ceil(line.qtyToPick)}" min="0"></div>
+          <div><label class="fl">Lot no picked *</label><input type="text" id="b_${order.order}_${i}" value="${line.lotNo}"></div>
+          <div><button class="btn bs" style="width:100%;margin-top:18px" onclick="confirmLine('${order.order}',${i})">Confirm pick</button></div>
+        </div>
+        <div class="repbox" id="rb_${order.order}_${i}" style="display:none">
+          <label>Lot not found — enter replacement lot number:</label>
+          <div style="display:flex;gap:8px;margin-top:4px">
+            <input type="text" id="rl_${order.order}_${i}" placeholder="Replacement lot no...">
+            <button class="btn bw btn-sm" style="white-space:nowrap;padding:8px 14px" onclick="confirmReplacement('${order.order}',${i})">Confirm replacement</button>
+          </div>
+        </div>
+        <div style="margin-top:8px">
+          <button class="btn-sm" style="background:#fff3e0;border:1px solid #f0a500;color:#e65100;padding:5px 12px" onclick="toggleRep('${order.order}',${i})">Lot not found / use replacement lot</button>
+        </div>`;
+      }
+    } else {
+      html+=`<div style="margin-top:8px;text-align:right">
+        <button class="btn-sm" style="background:#fff;border:1px solid #E24B4A;color:#E24B4A;padding:5px 12px" onclick="undoLine('${order.order}',${i})">&#8635; Undo pick</button>
+      </div>`;
+    }
+    html+=`</div>`;
+  });
+  document.getElementById('orderView').innerHTML=html;
+}
+
+function toggleRep(o,i){const b=document.getElementById(`rb_${o}_${i}`);b.style.display=b.style.display==='none'?'block':'none';}
+
+function confirmLine(orderNo,idx){
+  const order=S.orders.find(o=>o.order===orderNo); if(!order) return;
+  const line=order.lines[idx];
+  const qty=parseInt(document.getElementById(`q_${orderNo}_${idx}`).value)||0;
+  const batch=document.getElementById(`b_${orderNo}_${idx}`).value.trim()||line.lotNo;
+  if(qty<=0){alert('Please enter a valid quantity.');return;}
+  if(qty>line.qtyToPick&&!confirm(`You entered ${qty} but only ${line.qtyToPick} required. Continue?`)) return;
+  const sk=line.itemNo+'__'+line.lotNo;
+  if(S.stock[sk]) S.stock[sk].available=Math.max(0,S.stock[sk].available-qty);
+  Object.assign(line,{picked:qty,pickedBatch:batch,confirmed:true,replacement:false,pickedBy:S.picker,pickedDate:S.pdate||tod(),pickedTime:nowt()});
+  // Push this specific line to Firebase immediately for fast sync
+  if(fbConnected) pushLineToFirebase(orderNo, idx, line);
+  sv(); renderOrder(order); renderOrderList();
+  // If order is now fully complete, archive to history
+  archiveIfComplete(order);
+}
+
+function archiveIfComplete(order){
+  if(!order.lines.every(l=>l.confirmed)) return;
+  if(!S.history) S.history=[];
+  // Check if already archived
+  const exists = S.history.find(h=>h.order===order.order && h.archivedDate===tod());
+  if(exists) return;
+  // Clone order into history with archive timestamp
+  const archived = JSON.parse(JSON.stringify(order));
+  archived.archivedAt = new Date().toISOString();
+  archived.archivedDate = tod();
+  S.history.push(archived);
+  sv();
+  // Push history to Firebase so it's permanent across all devices
+  pushHistoryToFirebase(archived);
+}
+
+function pushHistoryToFirebase(archived){
+  if(!fbConnected || !fbDB) return;
+  const key = archived.order + '_' + archived.archivedDate;
+  fbDB.ref('warehouse/history/'+key).set(archived).catch(()=>{});
+}
+
+function loadHistoryFromFirebase(){
+  if(!fbConnected || !fbDB) return;
+  fbDB.ref('warehouse/history').once('value', snap=>{
+    const data = snap.val();
+    if(!data) return;
+    if(!S.history) S.history=[];
+    Object.values(data).forEach(h=>{
+      // Only add if not already in local history
+      const exists = S.history.find(x=>x.order===h.order && x.archivedDate===h.archivedDate);
+      if(!exists) S.history.push(h);
+    });
+    // Sort by date descending
+    S.history.sort((a,b)=>b.archivedAt>a.archivedAt?1:-1);
+    localStorage.setItem('wpa3', JSON.stringify(Object.assign({},S,{_locks:{}})));
+    // Refresh history tab if open
+    const pHist = document.getElementById('pHistory');
+    if(pHist && pHist.style.display!=='none') renderHistory();
+  });
+}
+
+function skipLine(orderNo,idx){
+  const order=S.orders.find(o=>o.order===orderNo); if(!order) return;
+  const line=order.lines[idx];
+  // Mark as confirmed-skipped so order can proceed
+  Object.assign(line,{
+    picked:0,pickedBatch:'NO STOCK',confirmed:true,replacement:false,
+    skipped:true,pickedBy:S.picker,pickedDate:S.pdate||tod(),pickedTime:nowt()
+  });
+  if(fbConnected) pushLineToFirebase(orderNo, idx, line);
+  sv(); renderOrder(order); renderOrderList();
+}
+
+function undoLine(orderNo,idx){
+  const order=S.orders.find(o=>o.order===orderNo); if(!order) return;
+  const line=order.lines[idx];
+  if(!confirm(`Undo pick for ${line.itemNo} — ${line.desc}? This will restore the stock.`)) return;
+  // Restore stock if it was deducted
+  if(!line.skipped && !line.noStock){
+    const sk=line.itemNo+'__'+line.lotNo;
+    if(S.stock[sk]) S.stock[sk].available=Math.min(S.stock[sk].available+(line.picked||0), line.lotQty);
+  }
+  // Reset line back to pending
+  line.confirmed=false;
+  line.picked=0;
+  line.pickedBatch=undefined;
+  line.pickedBy=undefined;
+  line.pickedDate=undefined;
+  line.pickedTime=undefined;
+  line.replacement=false;
+  line.replacementLot=undefined;
+  line.skipped=false;
+  // Push undone line to Firebase
+  if(fbConnected) pushLineToFirebase(orderNo, idx, line);
+  // Remove from history if order was previously complete
+  removeFromHistory(order.order);
+  sv(); renderOrder(order); renderOrderList();
+}
+
+function removeFromHistory(orderNo){
+  if(!S.history) return;
+  const before = S.history.length;
+  S.history = S.history.filter(h=>h.order!==orderNo);
+  if(S.history.length < before){
+    // Also remove from Firebase history
+    if(fbConnected && fbDB){
+      fbDB.ref('warehouse/history').once('value', snap=>{
+        const data = snap.val()||{};
+        Object.entries(data).forEach(([key,val])=>{
+          if(val.order===orderNo) fbDB.ref('warehouse/history/'+key).remove();
+        });
+      });
+    }
+  }
+}
+
+function confirmReplacement(orderNo,idx){
+  const order=S.orders.find(o=>o.order===orderNo); if(!order) return;
+  const line=order.lines[idx];
+  const qty=parseInt(document.getElementById(`q_${orderNo}_${idx}`).value)||0;
+  const repLot=document.getElementById(`rl_${orderNo}_${idx}`).value.trim();
+  if(!repLot){alert('Please enter a replacement lot number.');return;}
+  if(qty<=0){alert('Please enter a valid quantity.');return;}
+  Object.assign(line,{picked:qty,pickedBatch:repLot,replacementLot:repLot,confirmed:true,replacement:true,pickedBy:S.picker,pickedDate:S.pdate||tod(),pickedTime:nowt()});
+  if(fbConnected) pushLineToFirebase(orderNo, idx, line);
+  sv(); renderOrder(order); renderOrderList();
+}
+
+function renderDash(){
+  const tot=S.orders.length;
+  const dn=S.orders.filter(o=>o.lines.every(l=>l.confirmed)).length;
+  const ip=S.orders.filter(o=>o.lines.some(l=>l.confirmed)&&!o.lines.every(l=>l.confirmed)).length;
+  // Date info bar
+  const loadedAt=S.dateLoaded?new Date(S.dateLoaded).toLocaleString('en-ZA',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}):'—';
+  const dreqFmt=S.drequest?new Date(S.drequest).toLocaleDateString('en-ZA',{weekday:'short',day:'2-digit',month:'long',year:'numeric'}):'—';
+  const dateBar=document.getElementById('dashDateBar');
+  if(dateBar) dateBar.innerHTML=`
+    <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:center">
+      <div><div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px">Order Request / Delivery Date</div><div style="font-size:15px;font-weight:700;color:#1F3864">${dreqFmt}</div></div>
+      <div style="width:1px;height:36px;background:#e0e4ea"></div>
+      <div><div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px">Pick List Loaded</div><div style="font-size:15px;font-weight:700;color:#1F3864">${loadedAt}</div></div>
+      ${S.fileName?`<div style="width:1px;height:36px;background:#e0e4ea"></div><div><div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px">Source File</div><div style="font-size:13px;font-weight:700;color:#555">${S.fileName}</div></div>`:''}
+      <div style="width:1px;height:36px;background:#e0e4ea"></div>
+      <div id="syncStatusBar"><div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px">Sync Status</div><div style="font-size:13px;font-weight:700;color:#aaa" id="syncStatusText">Not connected</div></div>
+    </div>`;
+  document.getElementById('statsRow').innerHTML=`
+    <div class="sc"><div class="v">${tot}</div><div class="l">Total orders</div></div>
+    <div class="sc"><div class="v" style="color:#1D9E75">${dn}</div><div class="l">Complete</div></div>
+    <div class="sc"><div class="v" style="color:#185FA5">${ip}</div><div class="l">In progress</div></div>
+    <div class="sc"><div class="v" style="color:#E24B4A">${tot-dn-ip}</div><div class="l">Not started</div></div>`;
+  const rows=S.orders.map(o=>{
+    const dl=o.lines.filter(l=>l.confirmed).length;
+    const pct=Math.round((dl/o.lines.length)*100);
+    const sc=dl===o.lines.length?'done':dl>0?'part':'open';
+    const pickers=[...new Set(o.lines.filter(l=>l.pickedBy).map(l=>l.pickedBy))].join(', ')||'—';
+    return `<tr>
+      <td><strong>${o.order}</strong>${o.urgent?'<span class="badge b-urgent" style="margin-left:4px;font-size:10px">URGENT</span>':''}</td>
+      <td>${o.customer}</td>
+      <td style="font-size:12px;color:#444">${o.clientName||'—'}</td>
+      <td style="font-size:12px;white-space:nowrap">${o.drequest?new Date(o.drequest).toLocaleDateString('en-ZA',{day:'2-digit',month:'short',year:'numeric'}):'—'}</td>
+      <td>${o.lines.length}</td>
+      <td>${dl}/${o.lines.length}</td>
+      <td><div style="display:flex;align-items:center;gap:6px"><div class="pbw" style="margin:0;width:60px;display:inline-block"><div class="pbf" style="width:${pct}%"></div></div>${pct}%</div></td>
+      <td>${pickers}</td>
+      <td><span class="badge ${sc==='done'?'b-done':sc==='part'?'b-part':'b-open'}">${sc==='done'?'Complete':sc==='part'?'In progress':'Not started'}</span></td>
+      <td style="white-space:nowrap">
+        <button class="btn-sm" style="background:#E6F1FB;color:#0C447C;border:1px solid #B5D4F4;margin-right:4px" onclick="jumpOrder('${o.order}')">View</button>
+        <button class="btn-sm" style="background:#1F3864;color:#fff;border:none" onclick="openInvoice('${o.order}')">&#128438; Invoice</button>
+      </td>
+    </tr>`;
+  }).join('');
+  document.getElementById('ordersTable').innerHTML=`<div style="overflow-x:auto"><table>
+    <thead><tr><th>Order</th><th>Customer</th><th>Client</th><th>Request Date</th><th>Order Date</th><th>Lines</th><th>Picked</th><th>Progress</th><th>Picker(s)</th><th>Status</th><th></th></tr></thead>
+    <tbody>${rows||'<tr><td colspan="10" style="text-align:center;color:#aaa;padding:20px">No orders loaded</td></tr>'}</tbody>
+  </table></div>`;
+}
+
+function jumpOrder(no){setMode('picker');if(S.picker){const o=S.orders.find(x=>x.order===no);if(o)openOrderView(o);}window.scrollTo(0,0);}
+
+function renderSumm(){
+  const picks=[];
+  S.orders.forEach(o=>o.lines.forEach(l=>{
+    if(l.confirmed) picks.push({order:o.order,customer:o.customer,...l});
+  }));
+  if(!picks.length){document.getElementById('summaryContent').innerHTML='<div style="text-align:center;color:#aaa;padding:30px">No picks recorded yet.</div>';return;}
+  const rows=picks.map(p=>`<tr>
+    <td>${p.order}</td><td>${p.customer}</td><td>${p.itemNo}</td><td>${p.desc}</td>
+    <td>${p.lotNo}</td>
+    <td>${p.replacement?`<span style="color:#e65100;font-weight:700">${p.replacementLot} (replacement)</span>`:p.pickedBatch||p.lotNo}</td>
+    <td style="text-align:center;font-weight:700">${p.picked}</td>
+    <td>${p.pickedBy||'—'}</td>
+    <td>${p.pickedDate||'—'} ${p.pickedTime||''}</td>
+  </tr>`).join('');
+  document.getElementById('summaryContent').innerHTML=`<div style="overflow-x:auto"><table>
+    <thead><tr><th>Order</th><th>Customer</th><th>Item</th><th>Description</th><th>Original lot</th><th>Picked lot</th><th>Qty</th><th>Picker</th><th>Date / Time</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table></div>`;
+}
+
+function renderStock(){
+  const q=(document.getElementById('stockSearch')||{}).value||'';
+  const items=Object.values(S.stock).filter(s=>!q||s.itemNo.includes(q)||s.desc.toLowerCase().includes(q.toLowerCase())||s.lotNo.includes(q));
+  if(!items.length){document.getElementById('stockTable').innerHTML='<div style="text-align:center;color:#aaa;padding:20px">No stock records.</div>';return;}
+  const rows=items.map(s=>`<tr>
+    <td>${s.itemNo}</td><td>${s.desc}</td>
+    <td><span class="badge b-pend">${s.lotNo}</span></td>
+    <td style="font-weight:700;color:${s.available>0?'#1D9E75':'#E24B4A'}">${s.available}</td>
+  </tr>`).join('');
+  document.getElementById('stockTable').innerHTML=`<div style="overflow-x:auto"><table>
+    <thead><tr><th>Item no</th><th>Description</th><th>Lot no</th><th>Available qty</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table></div>`;
+}
+
+function loadCSV(){
+  const raw=document.getElementById('csvInput').value.trim();
+  if(!raw){document.getElementById('loadAlert').innerHTML='<div class="al al-wn">Please paste CSV data first.</div>';return;}
+  try{
+    const lines=raw.split('\n').map(l=>l.split(',').map(c=>c.trim().replace(/^"|"$/g,'')));
+    const hdrs=lines[0].map(h=>h.toLowerCase().replace(/[\s\/]/g,'_'));
+    const rows=lines.slice(1).filter(l=>l.length>3&&l[0]);
+    const om={};
+    rows.forEach(r=>{
+      const row={};hdrs.forEach((h,i)=>row[h]=r[i]||'');
+      const ono=(row['order_no']||row['order']||'').toString().trim();
+      if(!ono) return;
+      if(!om[ono]) om[ono]={order:ono,customer:row['customer']||row['ccustno']||'',clientName:row['client_name']||row['client']||row['cname']||'',urgent:(row['urgent']||'').toLowerCase()==='yes'||false,dueDate:row['due_date']||row['drequest']||row['delivery_date']||'',lines:[]};
+      om[ono].lines.push({itemNo:(row['item_no']||row['citemno']||'').toString().trim(),desc:row['description']||row['cdescript']||'',lotNo:(row['lot_no']||row['clotno']||'').toString().trim(),lotQty:parseInt(row['lot_qty_available']||row['lot_qty']||0),qtyToPick:parseInt(row['qty_to_pick']||0),qtyOrdered:parseInt(row['qty_ordered']||0),picked:0,confirmed:false,replacement:false});
+    });
+    const newO=Object.values(om);
+    if(!newO.length){document.getElementById('loadAlert').innerHTML='<div class="al al-er">No valid orders found. Check column names.</div>';return;}
+    S.orders=newO; S.picker=null; rebuildStock(); sv();
+    document.getElementById('loadAlert').innerHTML=`<div class="al al-ok">Loaded ${newO.length} orders with ${rows.length} pick lines. Ready for pickers!</div>`;
+    renderDash();
+  }catch(e){document.getElementById('loadAlert').innerHTML=`<div class="al al-er">Error: ${e.message}</div>`;}
+}
+
+function loadSample(){
+  S.orders=JSON.parse(JSON.stringify(SAMPLE));S.picker=null;S.drequest='2026-03-31';S.dateLoaded=new Date().toISOString();S.fileName='sample-data';rebuildStock();sv();
+  document.getElementById('loadAlert').innerHTML='<div class="al al-ok">Sample data loaded — 5 orders ready.</div>';
+  renderDash();renderStock();
+}
+
+function clearAll(){
+  if(!confirm('Clear all data? This cannot be undone.')) return;
+  S={orders:[],stock:{},picker:null,pdate:null};sv();
+  renderDash();renderStock();
+  document.getElementById('loadAlert').innerHTML='<div class="al al-in">All data cleared. Upload your Excel file to begin.</div>';
+}
+
+// ── Excel Upload Processing ──────────────────────────────────────────────────
+
+function handleDrop(e){
+  e.preventDefault();
+  document.getElementById('uploadZone').classList.remove('drag');
+  const file=e.dataTransfer.files[0];
+  if(file) processExcelFile(file);
+}
+
+function handleFileSelect(e){
+  const file=e.target.files[0];
+  if(file) processExcelFile(file);
+  e.target.value='';
+}
+
+function stepDone(n,msg){
+  const el=document.getElementById('st'+n);
+  el.className='ps-icon ps-done'; el.textContent='✓';
+  if(msg) document.getElementById('st'+n+'t').textContent=msg;
+}
+function stepErr(n,msg){
+  const el=document.getElementById('st'+n);
+  el.className='ps-icon ps-err'; el.textContent='✗';
+  if(msg) document.getElementById('st'+n+'t').innerHTML='<span style="color:#721C24">'+msg+'</span>';
+}
+function stepWait(n,msg){
+  const el=document.getElementById('st'+n);
+  el.className='ps-icon ps-wait'; el.textContent=n;
+  if(msg) document.getElementById('st'+n+'t').textContent=msg;
+}
+function resetSteps(){
+  for(let i=1;i<=5;i++) stepWait(i,['Reading Excel file...','Reading open sale order sheet...','Reading Items available sheet...','Matching orders to lot numbers (FIFO)...','Loading pick list into app...'][i-1]);
+}
+
+function cleanLotNo(raw){
+  if(raw === null || raw === undefined) return '';
+  // If it's already a string just clean and return
+  if(typeof raw === 'string') return raw.trim();
+  // If SheetJS parsed it as a Date object, convert back to DDMMYYYY
+  if(raw instanceof Date){
+    const d=String(raw.getDate()).padStart(2,'0');
+    const m=String(raw.getMonth()+1).padStart(2,'0');
+    const y=raw.getFullYear();
+    return d+m+y;
+  }
+  // If it's a number - could be an Excel date serial or a numeric lot
+  if(typeof raw === 'number'){
+    // Excel date serial numbers are typically 30000-60000 range (year ~1982-2064)
+    if(raw > 25000 && raw < 70000){
+      // Convert Excel serial to date string DDMMYYYY
+      const excelEpoch = new Date(1899,11,30);
+      const d = new Date(excelEpoch.getTime() + raw * 86400000);
+      const dd=String(d.getDate()).padStart(2,'0');
+      const mm=String(d.getMonth()+1).padStart(2,'0');
+      const yyyy=d.getFullYear();
+      return dd+mm+yyyy;
+    }
+    // Otherwise treat as a plain numeric lot number
+    return String(Math.round(raw));
+  }
+  return String(raw).trim();
+}
+
+function processExcelFile(file){
+  const alertEl=document.getElementById('loadAlert');
+  alertEl.innerHTML='';
+  document.getElementById('procSteps').style.display='block';
+  resetSteps();
+
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      stepDone(1,'Excel file read: '+file.name);
+
+      // Parse workbook
+      const data=new Uint8Array(e.target.result);
+      const wb=XLSX.read(data,{type:'array',cellDates:false,cellText:true,raw:false});
+
+      // ── Sheet 1: open sale order ─────────────────────────────────────────
+      const orderSheetName=wb.SheetNames.find(n=>n.toLowerCase().includes('open sale order')||n.toLowerCase().includes('open'));
+      if(!orderSheetName) throw new Error('Could not find "open sale order" sheet. Check sheet names.');
+      const orderSheet=wb.Sheets[orderSheetName];
+      const orderRaw=XLSX.utils.sheet_to_json(orderSheet,{header:1,defval:''});
+
+      // Get date from B1
+      let pickDate='';
+      try{
+        const dateVal=orderRaw[0][1];
+        if(dateVal instanceof Date) pickDate=dateVal.toISOString().split('T')[0];
+        else if(typeof dateVal==='string'&&dateVal) pickDate=dateVal.split('T')[0]||dateVal;
+        else if(typeof dateVal==='number'&&dateVal>0){
+          const excelEpoch=new Date(1899,11,30);
+          pickDate=new Date(excelEpoch.getTime()+dateVal*86400000).toISOString().split('T')[0];
+        }
+      }catch(e2){pickDate=tod();}
+      S.drequest=pickDate;
+      S.dateLoaded=new Date().toISOString();
+      S.fileName=file.name;
+
+      // Header row is row index 3 (0-based): csono,ccustno,citemno,cdescript,Total
+      const orderDataRows=orderRaw.slice(4).filter(r=>r[0]&&r[0]!=='');
+      // Check if header row has a dorder/date column (col 5+)
+      const headerRow=orderRaw[3]||[];
+      const dorderColIdx=headerRow.findIndex(h=>h&&String(h).toLowerCase().includes('dorder'));
+      const orders=orderDataRows
+        .filter(r=>parseFloat(r[4])>0)
+        .map(r=>({
+          csono:String(r[0]).trim(),
+          ccustno:String(r[1]).trim(),
+          citemno:String(r[2]).trim(),
+          cdescript:String(r[3]).trim(),
+          // Round qty to nearest whole number — orders should always be full cases
+          qty:Math.round(parseFloat(r[4])||0),
+          dorder:dorderColIdx>=0&&r[dorderColIdx]?(()=>{const dv=r[dorderColIdx];if(dv instanceof Date)return dv.toISOString().split('T')[0];if(typeof dv==='number'&&dv>0){const ep=new Date(1899,11,30);return new Date(ep.getTime()+dv*86400000).toISOString().split('T')[0];}return String(dv).split('T')[0];})():'',
+        }));
+
+      if(!orders.length) throw new Error('No orders with quantity > 0 found in "open sale order" sheet.');
+      stepDone(2,`Found ${orders.length} order lines from ${[...new Set(orders.map(o=>o.csono))].length} orders (date: ${pickDate})`);
+
+      // ── Sheet 2: Items availabe ──────────────────────────────────────────
+      const itemSheetName=wb.SheetNames.find(n=>n.toLowerCase().includes('items'));
+      if(!itemSheetName) throw new Error('Could not find "Items availabe" sheet. Check sheet names.');
+      const itemSheet=wb.Sheets[itemSheetName];
+      const itemRaw=XLSX.utils.sheet_to_json(itemSheet,{header:1,defval:''});
+
+      // Header row 0: citemno, cdescript, cwarehouse, clotno, dexpire, nonhand
+      // Only use FGWHOUSE — defensive cell value extraction handles SheetJS object/string variations
+      function getCellStr(val){
+        if(val===null||val===undefined) return '';
+        if(typeof val==='object'&&val.v!==undefined) return String(val.v).trim();
+        return String(val).trim();
+      }
+      const itemDataRows=itemRaw.slice(1).filter(r=>{
+        if(!r||!r[0]) return false;
+        return getCellStr(r[2])==='FGWHOUSE';
+      });
+      // Build lot map: itemNo -> sorted lots by expiry (FIFO)
+      const lotMap={};
+      itemDataRows.forEach(r=>{
+        const itemNo=getCellStr(r[0]);
+        const lotNo=cleanLotNo(r[3]);
+        // Floor qty to remove any fractional cases - FGWHOUSE should always be whole numbers
+        const qty=Math.floor(parseFloat(getCellStr(r[5]))||0);
+        if(qty<=0) return;
+        let expiry=null;
+        try{
+          if(r[4] instanceof Date) expiry=r[4];
+          else if(typeof r[4]==='number'&&r[4]>0){
+            const excelEpoch=new Date(1899,11,30);
+            expiry=new Date(excelEpoch.getTime()+r[4]*86400000);
+          }
+          else if(typeof r[4]==='string'&&r[4]) expiry=new Date(r[4]);
+        }catch(ex){expiry=new Date('9999-12-31');}
+        if(!expiry||isNaN(expiry.getTime())) expiry=new Date('9999-12-31');
+        if(!lotMap[itemNo]) lotMap[itemNo]=[];
+        lotMap[itemNo].push({lotNo,qty,expiry,warehouse:'FGWHOUSE'});
+      });
+      // Sort FIFO by expiry date (oldest first)
+      Object.keys(lotMap).forEach(k=>lotMap[k].sort((a,b)=>a.expiry-b.expiry));
+
+      const stockItemCount=Object.keys(lotMap).length;
+      stepDone(3,`Found ${itemDataRows.length} stock lines across ${stockItemCount} items (FGWHOUSE only)`);
+
+      // ── FIFO matching ────────────────────────────────────────────────────
+      const ordersMap={};
+      const stockUsed={}; // track consumption across orders
+
+      // Clone lot qtys so we can deduct as we allocate
+      const availableLots={};
+      Object.keys(lotMap).forEach(k=>{
+        availableLots[k]=lotMap[k].map(l=>({...l,remaining:l.qty}));
+      });
+
+      orders.forEach(o=>{
+        if(!ordersMap[o.csono]){
+          ordersMap[o.csono]={
+            order:o.csono,
+            customer:o.ccustno,
+            clientName:'',
+            dueDate:pickDate,
+            drequest:pickDate,
+            dorder:o.dorder||'',
+            urgent:false,
+            lines:[]
+          };
+        }
+        const lots=availableLots[o.citemno]||[];
+        let remaining=o.qty;
+        const assignedLots=[];
+
+        for(let i=0;i<lots.length&&remaining>0;i++){
+          if(lots[i].remaining<=0) continue;
+          const pick=Math.min(remaining,lots[i].remaining);
+          assignedLots.push({lotNo:lots[i].lotNo,lotQty:lots[i].qty,qtyToPick:pick,warehouse:'FGWHOUSE'});
+          lots[i].remaining-=pick;
+          remaining-=pick;
+        }
+
+        if(assignedLots.length===0){
+          // No stock at all
+          ordersMap[o.csono].lines.push({
+            itemNo:o.citemno,desc:o.cdescript,
+            lotNo:'NO STOCK',lotQty:0,
+            qtyToPick:0,qtyOrdered:o.qty,
+            picked:0,confirmed:false,replacement:false,noStock:true
+          });
+        } else {
+          assignedLots.forEach(al=>{
+            ordersMap[o.csono].lines.push({
+              itemNo:o.citemno,desc:o.cdescript,
+              lotNo:al.lotNo,lotQty:al.lotQty,warehouse:al.warehouse||'',
+              qtyToPick:al.qtyToPick,qtyOrdered:o.qty,
+              picked:0,confirmed:false,replacement:false,noStock:false,
+              shortfall:remaining>0?remaining:0
+            });
+          });
+          // If still remaining after all lots, last line flagged as short
+          if(remaining>0){
+            ordersMap[o.csono].lines[ordersMap[o.csono].lines.length-1].shortfall=remaining;
+          }
+        }
+      });
+
+      const newOrders=Object.values(ordersMap);
+      stepDone(4,`Matched ${newOrders.length} orders — FIFO lot assignment complete`);
+
+      // ── Load into app state ──────────────────────────────────────────────
+      S.orders=newOrders;
+      S.picker=null;
+      S.pdate=pickDate;
+      rebuildStock();
+      sv();
+      renderDash();
+      renderStock();
+      stepDone(5,`Pick list loaded! ${newOrders.length} orders with ${orders.length} lines ready for picking`);
+      alertEl.innerHTML=`<div class="al al-ok"><strong>Done!</strong> ${newOrders.length} orders loaded from ${file.name}. Date: ${pickDate}. Pickers can start now.</div>`;
+      // Push new pick list to Firebase so all tablets get it
+      if(fbConnected) pushPickListToFirebase();
+      document.getElementById('uploadZone').innerHTML=`<div class="uz-icon">&#10003;</div><div class="uz-title" style="color:#1D9E75">${file.name} loaded successfully</div><div class="uz-sub">Click to upload a different file</div>`;
+
+    }catch(err){
+      stepErr(5,'Error: '+err.message);
+      alertEl.innerHTML=`<div class="al al-er"><strong>Error processing file:</strong> ${err.message}<br><span style="font-size:12px">Make sure the file has sheets named "open sale order" and "Items availabe"</span></div>`;
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// ── Picking Statistics ───────────────────────────────────────────────────────
+
+function buildStatsData(dateFilter){
+  // Collect all confirmed pick lines across all orders
+  const picks = [];
+  S.orders.forEach(o => {
+    o.lines.forEach(l => {
+      if(!l.confirmed) return;
+      picks.push({
+        order: o.order,
+        customer: o.customer,
+        clientName: o.clientName||'',
+        drequest: o.drequest||S.drequest||'',
+        picker: l.pickedBy||'Unknown',
+        date: l.pickedDate||'',
+        time: l.pickedTime||'',
+        itemNo: l.itemNo,
+        desc: l.desc,
+        qtyPicked: l.picked||0,
+        qtyOrdered: l.qtyOrdered||0,
+        replacement: l.replacement||false
+      });
+    });
+  });
+  if(dateFilter && dateFilter !== 'all'){
+    return picks.filter(p => p.date === dateFilter);
+  }
+  return picks;
+}
+
+function renderStats(){
+  const dateFilter = (document.getElementById('statsDateFilter')||{}).value || 'all';
+
+  // Build date options
+  const allPicks = buildStatsData('all');
+  const allDates = [...new Set(allPicks.map(p=>p.date).filter(Boolean))].sort().reverse();
+  const sel = document.getElementById('statsDateFilter');
+  if(sel){
+    const current = sel.value;
+    sel.innerHTML = '<option value="all">All days</option>' +
+      allDates.map(d => `<option value="${d}" ${d===current?'selected':''}>${formatDateNice(d)}</option>`).join('');
+  }
+
+  const picks = buildStatsData(dateFilter);
+
+  if(!picks.length){
+    document.getElementById('statsDailyCards').innerHTML = '<div style="color:#aaa;font-size:13px;padding:10px">No picks recorded yet. Complete some orders to see statistics here.</div>';
+    document.getElementById('statsPickerTable').innerHTML = '';
+    document.getElementById('statsDailyTable').innerHTML = '';
+    return;
+  }
+
+  // ── KPI Cards ──────────────────────────────────────────────────────────────
+  const totalOrders = new Set(picks.map(p=>p.order)).size;
+  const totalLines = picks.length;
+  const totalQty = picks.reduce((s,p)=>s+p.qtyPicked,0);
+  const uniquePickers = new Set(picks.map(p=>p.picker)).size;
+  const replacements = picks.filter(p=>p.replacement).length;
+  const daysWorked = new Set(picks.map(p=>p.date).filter(Boolean)).size;
+
+  document.getElementById('statsDailyCards').innerHTML = `
+    <div class="stats-kpi"><div class="kv">${totalOrders}</div><div class="kl">Orders picked</div></div>
+    <div class="stats-kpi"><div class="kv">${totalLines}</div><div class="kl">Lines picked</div></div>
+    <div class="stats-kpi"><div class="kv">${totalQty.toLocaleString()}</div><div class="kl">Total units picked</div></div>
+    <div class="stats-kpi"><div class="kv">${uniquePickers}</div><div class="kl">Active pickers</div></div>
+    <div class="stats-kpi"><div class="kv" style="color:${replacements>0?'#e65100':'#1D9E75'}">${replacements}</div><div class="kl">Replacement lots used</div></div>
+    <div class="stats-kpi"><div class="kv">${daysWorked}</div><div class="kl">Days recorded</div></div>`;
+
+  // ── Per Picker Table ───────────────────────────────────────────────────────
+  const pickerMap = {};
+  picks.forEach(p => {
+    if(!pickerMap[p.picker]) pickerMap[p.picker] = {
+      name:p.picker, orders:new Set(), lines:0, qty:0, replacements:0, dates:new Set(), firstPick:'', lastPick:''
+    };
+    pickerMap[p.picker].orders.add(p.order);
+    pickerMap[p.picker].lines++;
+    pickerMap[p.picker].qty += p.qtyPicked;
+    if(p.replacement) pickerMap[p.picker].replacements++;
+    if(p.date) pickerMap[p.picker].dates.add(p.date);
+    const ts = p.date + ' ' + (p.time||'');
+    if(!pickerMap[p.picker].firstPick || ts < pickerMap[p.picker].firstPick) pickerMap[p.picker].firstPick = ts.trim();
+    if(!pickerMap[p.picker].lastPick || ts > pickerMap[p.picker].lastPick) pickerMap[p.picker].lastPick = ts.trim();
+  });
+
+  const pickerArr = Object.values(pickerMap).sort((a,b) => b.lines - a.lines);
+  const maxLines = pickerArr[0]?.lines || 1;
+
+  const pickerRows = pickerArr.map((p,i) => {
+    const trophy = i===0?'&#127942;':i===1?'&#129352;':i===2?'&#129353;':'';
+    const barPct = Math.round((p.lines/maxLines)*100);
+    return `<tr ${i===0?'class="picker-row-top"':''}>
+      <td><span class="trophy">${trophy}</span> <strong>${p.name}</strong></td>
+      <td style="text-align:center;font-weight:700">${p.orders.size}</td>
+      <td>
+        <div class="bar-cell">
+          <div class="perf-bar" style="width:${Math.max(barPct,4)}px;max-width:120px"></div>
+          <span style="font-weight:700">${p.lines}</span>
+        </div>
+      </td>
+      <td style="text-align:center">${p.qty.toLocaleString()}</td>
+      <td style="text-align:center">${p.dates.size}</td>
+      <td style="text-align:center;color:${p.replacements>0?'#e65100':'#1D9E75'};font-weight:700">${p.replacements}</td>
+      <td style="font-size:11px;color:#888">${p.lastPick||'—'}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('statsPickerTable').innerHTML = `<div style="overflow-x:auto"><table>
+    <thead><tr>
+      <th>Picker</th>
+      <th style="text-align:center">Orders</th>
+      <th>Lines picked</th>
+      <th style="text-align:center">Units picked</th>
+      <th style="text-align:center">Days worked</th>
+      <th style="text-align:center">Replacement lots</th>
+      <th>Last pick</th>
+    </tr></thead>
+    <tbody>${pickerRows}</tbody>
+  </table></div>`;
+
+  // ── Daily Breakdown Table ──────────────────────────────────────────────────
+  const dayMap = {};
+  picks.forEach(p => {
+    const d = p.date||'Unknown';
+    if(!dayMap[d]) dayMap[d] = {date:d, orders:new Set(), lines:0, qty:0, pickers:new Set(), replacements:0};
+    dayMap[d].orders.add(p.order);
+    dayMap[d].lines++;
+    dayMap[d].qty += p.qtyPicked;
+    dayMap[d].pickers.add(p.picker);
+    if(p.replacement) dayMap[d].replacements++;
+  });
+
+  const dayArr = Object.values(dayMap).sort((a,b) => b.date.localeCompare(a.date));
+  const dayRows = dayArr.map(d => `<tr>
+    <td><strong>${formatDateNice(d.date)}</strong></td>
+    <td style="text-align:center;font-weight:700">${d.orders.size}</td>
+    <td style="text-align:center">${d.lines}</td>
+    <td style="text-align:center">${d.qty.toLocaleString()}</td>
+    <td style="font-size:12px">${[...d.pickers].join(', ')}</td>
+    <td style="text-align:center;color:${d.replacements>0?'#e65100':'#1D9E75'};font-weight:700">${d.replacements}</td>
+  </tr>`).join('');
+
+  document.getElementById('statsDailyTable').innerHTML = `<div style="overflow-x:auto"><table>
+    <thead><tr>
+      <th>Date</th>
+      <th style="text-align:center">Orders picked</th>
+      <th style="text-align:center">Lines picked</th>
+      <th style="text-align:center">Units picked</th>
+      <th>Pickers on duty</th>
+      <th style="text-align:center">Replacement lots</th>
+    </tr></thead>
+    <tbody>${dayRows||'<tr><td colspan="6" style="text-align:center;color:#aaa;padding:16px">No data</td></tr>'}</tbody>
+  </table></div>`;
+}
+
+function formatDateNice(d){
+  if(!d) return '—';
+  try{
+    return new Date(d).toLocaleDateString('en-ZA',{weekday:'short',day:'2-digit',month:'short',year:'numeric'});
+  }catch(e){return d;}
+}
+
+function exportStatsCSV(){
+  const picks = buildStatsData('all');
+  if(!picks.length){alert('No picks to export yet.');return;}
+  const headers = ['Date','Time','Picker','Order','Customer','Client','Item No','Description','Qty Picked','Qty Ordered','Replacement Lot'];
+  const rows = picks.map(p => [
+    p.date, p.time, p.picker, p.order, p.customer, p.clientName,
+    p.itemNo, '"'+p.desc.replace(/"/g,'""')+'"',
+    p.qtyPicked, p.qtyOrdered, p.replacement?'Yes':'No'
+  ].join(','));
+  const csv = [headers.join(','), ...rows].join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'picking-stats-'+new Date().toISOString().split('T')[0]+'.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+
+// ── AccountMate Export ───────────────────────────────────────────────────────
+
+function buildAccountMateCSV(order){
+  // Format: 
+  // Row 1 header: *,Customer N.,Date,Warehouse,S.O. N
+  // Row 2+ lines: Customer N.,Item N.,Qty,Lot N.
+  const date = order.dueDate || S.drequest || tod();
+  const warehouse = 'FGWHOUSE';
+  const lines = [];
+
+  // Header row
+  lines.push(['*', order.customer, date, warehouse, order.order].join(','));
+
+  // One line per picked item
+  order.lines.forEach(l => {
+    if(!l.confirmed) return; // only export confirmed picks
+    const lotNo = l.replacementLot || l.pickedBatch || l.lotNo;
+    lines.push([order.customer, l.itemNo, l.picked, lotNo].join(','));
+  });
+
+  return lines.join('\r\n');
+}
+
+function buildAccountMateCSVAll(order){
+  // Include ALL lines (confirmed + pending) for orders not yet complete
+  const date = order.dueDate || S.drequest || tod();
+  const warehouse = 'FGWHOUSE';
+  const lines = [];
+  lines.push(['*', order.customer, date, warehouse, order.order].join(','));
+  order.lines.forEach(l => {
+    const lotNo = l.replacementLot || l.pickedBatch || l.lotNo;
+    const qty = l.confirmed ? l.picked : l.qtyToPick;
+    lines.push([order.customer, l.itemNo, qty, lotNo].join(','));
+  });
+  return lines.join('\r\n');
+}
+
+function getOrderStatus(o){
+  const dl=o.lines.filter(l=>l.confirmed).length;
+  if(dl===o.lines.length) return 'done';
+  if(dl>0) return 'partial';
+  return 'open';
+}
+
+function renderExportList(){
+  const filter=(document.getElementById('exportFilter')||{}).value||'all';
+  let orders=S.orders.filter(o=>{
+    if(filter==='done') return getOrderStatus(o)==='done';
+    if(filter==='partial') return getOrderStatus(o)==='partial';
+    return true;
+  });
+
+  if(!orders.length){
+    document.getElementById('exportOrderList').innerHTML='<div style="text-align:center;color:#aaa;padding:24px;font-size:13px">No orders available. Load a pick list first.</div>';
+    return;
+  }
+
+  const rows = orders.map(o=>{
+    const st=getOrderStatus(o);
+    const dl=o.lines.filter(l=>l.confirmed).length;
+    const stClass=st==='done'?'b-done':st==='partial'?'b-part':'b-open';
+    const stLabel=st==='done'?'Complete':st==='partial'?'In progress':'Not started';
+    const csvLines=o.lines.filter(l=>l.confirmed).length;
+    return `<tr>
+      <td><strong>${o.order}</strong>${o.urgent?'<span class="badge b-urgent" style="margin-left:4px;font-size:10px">URGENT</span>':''}</td>
+      <td>${o.customer}</td>
+      <td style="font-size:12px">${o.clientName||'—'}</td>
+      <td>${o.lines.length}</td>
+      <td>${csvLines} of ${o.lines.length}</td>
+      <td><span class="badge ${stClass}">${stLabel}</span></td>
+      <td>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          ${st==='done'?
+            `<button class="btn-sm" style="background:#1D9E75;color:#fff;border:none" onclick="downloadOrderCSV('${o.order}',true)">Download CSV</button>`:
+            `<button class="btn-sm" style="background:#f0a500;color:#fff;border:none" onclick="downloadOrderCSV('${o.order}',false)">Download (partial)</button>`
+          }
+          <button class="btn-sm" style="background:#E6F1FB;color:#0C447C;border:1px solid #B5D4F4" onclick="previewOrderCSV('${o.order}')">Preview</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('exportOrderList').innerHTML=`<div style="overflow-x:auto"><table>
+    <thead><tr>
+      <th>Order</th><th>Customer</th><th>Client</th><th>Total lines</th><th>Confirmed lines</th><th>Status</th><th>Export</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table></div>
+  <div style="margin-top:12px;font-size:12px;color:#888">
+    <strong>Note:</strong> "Download CSV" for complete orders exports only confirmed picked lines. 
+    "Download (partial)" exports all lines using qty-to-pick for unconfirmed lines.
+  </div>`;
+}
+
+function downloadOrderCSV(orderNo, confirmedOnly){
+  const order=S.orders.find(o=>o.order===orderNo);
+  if(!order){alert('Order not found.');return;}
+  const csv=confirmedOnly?buildAccountMateCSV(order):buildAccountMateCSVAll(order);
+  if(csv.split('\n').length<=1){alert('No confirmed pick lines for this order yet.');return;}
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=`AM_Import_Order_${orderNo}_${order.customer}_${tod()}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function previewOrderCSV(orderNo){
+  const order=S.orders.find(o=>o.order===orderNo);
+  if(!order) return;
+  const csv=buildAccountMateCSVAll(order);
+  const prev=document.getElementById('exportPreview');
+  document.getElementById('exportPreviewText').textContent=csv;
+  document.querySelector('#exportPreview div').textContent=`CSV PREVIEW — Order ${orderNo} (${order.customer}${order.clientName?' / '+order.clientName:''})`;
+  prev.style.display='block';
+  prev.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function previewExport(){
+  // Show preview using first available order
+  const order=S.orders[0];
+  if(!order){alert('No orders loaded yet.');return;}
+  previewOrderCSV(order.order);
+}
+
+async function downloadAllCSV(){
+  // Download all orders as individual CSV files in a ZIP using JSZip
+  const orders=S.orders;
+  if(!orders.length){alert('No orders to export.');return;}
+
+  // Load JSZip dynamically
+  if(!window.JSZip){
+    const script=document.createElement('script');
+    script.src='https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+    document.head.appendChild(script);
+    await new Promise(r=>script.onload=r);
+  }
+
+  const zip=new JSZip();
+  const date=tod();
+  orders.forEach(o=>{
+    const csv=buildAccountMateCSVAll(o);
+    const fname=`AM_Import_Order_${o.order}_${o.customer}_${date}.csv`;
+    zip.file(fname,csv);
+  });
+
+  const blob=await zip.generateAsync({type:'blob'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=`AccountMate_Import_${date}.zip`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+
+// ── Invoice / Print Functions ────────────────────────────────────────────────
+
+function closeInvoice(){
+  document.getElementById('invoiceModal').classList.remove('open');
+}
+
+function openInvoice(orderNo){
+  const order = S.orders.find(o=>o.order===orderNo);
+  if(!order){alert('Order not found.');return;}
+  renderInvoiceContent(order);
+  document.getElementById('invoiceModal').classList.add('open');
+  window.scrollTo(0,0);
+}
+
+function renderInvoiceContent(order){
+  const pickedLines = order.lines.filter(l=>l.confirmed);
+  const pendingLines = order.lines.filter(l=>!l.confirmed&&!l.noStock);
+  const noStockLines = order.lines.filter(l=>l.noStock);
+  const allLines = order.lines;
+  const totalPicked = pickedLines.reduce((s,l)=>s+l.picked,0);
+  const totalOrdered = allLines.reduce((s,l)=>s+(l.qtyOrdered||l.qtyToPick||0),0);
+  const isComplete = order.lines.every(l=>l.confirmed||l.noStock);
+  const date = order.dueDate||S.drequest||tod();
+  const loadedDate = S.dateLoaded?new Date(S.dateLoaded).toLocaleDateString('en-ZA',{day:'2-digit',month:'long',year:'numeric'}):tod();
+  const pickers = [...new Set(pickedLines.map(l=>l.pickedBy).filter(Boolean))].join(', ')||'—';
+
+  // Build line rows - all lines
+  const lineRows = allLines.map((l,i)=>{
+    const lotUsed = l.replacement?l.replacementLot:(l.pickedBatch||l.lotNo);
+    const qty = l.confirmed ? l.picked : (l.noStock?0:Math.ceil(l.qtyToPick));
+    const status = l.confirmed
+      ? (l.replacement
+          ? `<span class="inv-status-badge" style="background:#fff3e0;color:#e65100">Replacement lot</span>`
+          : `<span class="inv-status-badge" style="background:#D4EDDA;color:#155724">Picked</span>`)
+      : (l.noStock
+          ? `<span class="inv-status-badge" style="background:#F8D7DA;color:#721C24">No stock</span>`
+          : `<span class="inv-status-badge" style="background:#FFF3CD;color:#856404">Pending</span>`);
+    const pickedTime = l.confirmed&&l.pickedTime ? l.pickedDate+' '+l.pickedTime : '—';
+    return `<tr>
+      <td>${i+1}</td>
+      <td><strong>${l.itemNo}</strong><br><span style="font-size:11px;color:#555">${l.desc}</span></td>
+      <td class="lot-cell">${lotUsed}${l.replacement?'<br><span style="color:#aaa;font-size:10px">orig: '+l.lotNo+'</span>':''}</td>
+      <td class="qty-cell">${Math.ceil(l.qtyOrdered||l.qtyToPick||0)}</td>
+      <td class="qty-cell" style="color:${l.confirmed?'#1D9E75':'#aaa'}">${l.confirmed?qty:'—'}</td>
+      <td>${status}</td>
+      <td style="font-size:11px;color:#888">${l.confirmed?(l.pickedBy||'—'):'—'}</td>
+    </tr>`;
+  }).join('');
+
+  const replacementWarning = order.lines.some(l=>l.replacement)
+    ? `<div class="inv-warn">&#9888; This order contains <strong>${order.lines.filter(l=>l.replacement).length} replacement lot(s)</strong> — please verify with warehouse manager before invoicing.</div>`
+    : '';
+
+  document.getElementById('invoiceContent').innerHTML = `
+    <div class="inv-header">
+      <div class="inv-logo">
+        <img src="https://static.wixstatic.com/media/e8e3a2_1f847f848ad746e8b8328f8c4c5e1efd~mv2.gif" alt="Continental Brands">
+        <div style="font-size:10px;color:#888;margin-top:4px">Continental Brands (Pty) Ltd</div>
+      </div>
+      <div>
+        <div class="inv-title">DELIVERY / PICK NOTE</div>
+        <div class="inv-subtitle">Order No: <strong>${order.order}</strong></div>
+        <div class="inv-subtitle">Printed: ${new Date().toLocaleDateString('en-ZA',{day:'2-digit',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'})}</div>
+        <div style="margin-top:6px">
+          <span class="inv-status-badge" style="background:${isComplete?'#D4EDDA':'#FFF3CD'};color:${isComplete?'#155724':'#856404'};font-size:12px;padding:4px 12px">
+            ${isComplete?'COMPLETE':'IN PROGRESS — '+pickedLines.length+'/'+allLines.length+' lines picked'}
+          </span>
+          ${order.urgent?'<span class="inv-status-badge" style="background:#E24B4A;color:#fff;font-size:12px;padding:4px 12px;margin-left:6px">URGENT</span>':''}
+        </div>
+      </div>
+    </div>
+
+    ${replacementWarning}
+
+    <div class="inv-meta">
+      <div class="inv-meta-box">
+        <div class="lbl">Customer</div>
+        <div class="val">${order.customer}</div>
+        ${order.clientName?`<div class="sub">${order.clientName}</div>`:''}
+      </div>
+      <div class="inv-meta-box">
+        <div class="lbl">Request date</div>
+        <div class="val">${new Date(date).toLocaleDateString('en-ZA',{weekday:'short',day:'2-digit',month:'long',year:'numeric'})}</div>
+        <div class="sub">Warehouse: FGWHOUSE</div>
+      </div>
+      <div class="inv-meta-box">
+        <div class="lbl">Pick list loaded</div>
+        <div class="val">${loadedDate}</div>
+        <div class="sub">Source: ${S.fileName||'—'}</div>
+      </div>
+      <div class="inv-meta-box">
+        <div class="lbl">Picked by</div>
+        <div class="val">${pickers}</div>
+        <div class="sub">${pickedLines.length} of ${allLines.length} lines confirmed</div>
+      </div>
+    </div>
+
+    <table class="inv-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Item</th>
+          <th>Lot No</th>
+          <th style="text-align:center">Qty Ordered</th>
+          <th style="text-align:center">Qty Picked</th>
+          <th>Status</th>
+          <th>Picker</th>
+        </tr>
+      </thead>
+      <tbody>${lineRows}</tbody>
+    </table>
+
+    <div class="inv-totals">
+      <div class="row"><span style="color:#888">Total lines:</span><span>${allLines.length}</span></div>
+      <div class="row"><span style="color:#888">Total qty ordered:</span><span>${totalOrdered.toLocaleString()}</span></div>
+      <div class="row total-row"><span>Total qty picked:</span><span style="color:#1D9E75">${totalPicked.toLocaleString()}</span></div>
+      ${noStockLines.length?`<div class="row" style="color:#E24B4A"><span>Lines with no stock:</span><span>${noStockLines.length}</span></div>`:''}
+    </div>
+
+    <div class="inv-sig">
+      <div class="inv-sig-box">Warehouse Manager sign-off<br><br><br></div>
+      <div class="inv-sig-box">Received by (Customer)<br><br><br></div>
+    </div>
+
+    <div class="inv-footer">
+      Continental Brands (Pty) Ltd &nbsp;|&nbsp; Johannesburg, South Africa &nbsp;|&nbsp; info@tastytreats.co.za &nbsp;|&nbsp; www.continentalbrands.co.za
+    </div>`;
+}
+
+
+// ── Firebase Sync + Order Locking ────────────────────────────────────────────
+
+const FB_CONFIG = {
+  apiKey: "AIzaSyCpAUwWmsQROSJ03ig8Zyzk1Q89yxAtnFc",
+  authDomain: "warehouse--picking.firebaseapp.com",
+  databaseURL: "https://warehouse--picking-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "warehouse--picking",
+  storageBucket: "warehouse--picking.appspot.com",
+  messagingSenderId: "805612086967",
+  appId: "1:805612086967:web:906f33132f813caee90f32"
+};
+
+let fbDB = null;
+let fbConnected = false;
+
+// Returns true if picker is currently inside an order (not on selection screen)
+function isPickerInOrder(){
+  const pv = document.getElementById('orderPickingView');
+  return pv && pv.style.display !== 'none';
+}
+let fbRef = null;
+let fbLocksRef = null;
+let isReceiving = false;
+let currentLockedOrder = null;
+const LOCK_TIMEOUT_MS = 5 * 60 * 1000;
+
+function loadFirebaseConfig(){
+  try{
+    if(!firebase.apps.length) firebase.initializeApp(FB_CONFIG);
+    fbDB = firebase.database();
+    fbRef = fbDB.ref('warehouse/orders');
+    fbLocksRef = fbDB.ref('warehouse/locks');
+    fbDB.ref('.info/connected').on('value', snap=>{
+      if(snap.val()===true){
+        fbConnected = true;
+        setFbStatus('&#9679; Live sync — all tablets connected','#155724','#f0fff8','#C3E6CB');
+        updateSyncStatus('Live sync ●','#1D9E75');
+        startListening();
+        cleanStaleLocks();
+        loadHistoryFromFirebase();
+      } else {
+        fbConnected = false;
+        setFbStatus('&#9679; Offline — picks saved locally, will sync when WiFi returns','#856404','#FFF3CD','#FFEEBA');
+        updateSyncStatus('Offline','#f0a500');
+      }
+    });
+  }catch(err){
+    setFbStatus('Sync error: '+err.message,'#721C24','#F8D7DA','#F5C6CB');
+  }
+}
+
+function setFbStatus(msg, textColor, bg, border){
+  const card = document.getElementById('firebaseStatusCard');
+  const span = document.getElementById('fbConnectStatus');
+  if(span){ span.innerHTML=msg; span.style.color=textColor; }
+  if(card){ card.style.background=bg; card.style.borderColor=border; }
+}
+
+function updateSyncStatus(text, color){
+  const el = document.getElementById('syncStatusText');
+  if(el){ el.textContent=text; el.style.color=color; }
+}
+
+function lockOrder(orderNo){
+  if(!fbConnected || !fbLocksRef || !S.picker) return Promise.resolve(true);
+  const lockData = {pickedBy:S.picker, lockedAt:Date.now(), expiresAt:Date.now()+LOCK_TIMEOUT_MS};
+  return fbLocksRef.child(orderNo).transaction(current=>{
+    if(current && current.pickedBy!==S.picker && Date.now()<current.expiresAt) return;
+    return lockData;
+  }).then(result=>{
+    if(result.committed){ currentLockedOrder=orderNo; return true; }
+    const who = result.snapshot.val();
+    return {locked:true, by:who?who.pickedBy:'another picker'};
+  });
+}
+
+function unlockOrder(orderNo){
+  if(!fbConnected || !fbLocksRef) return;
+  const no = orderNo||currentLockedOrder;
+  if(!no) return;
+  fbLocksRef.child(no).transaction(current=>{
+    if(current && current.pickedBy===S.picker) return null;
+    return current;
+  });
+  if(no===currentLockedOrder) currentLockedOrder=null;
+}
+
+function cleanStaleLocks(){
+  if(!fbLocksRef) return;
+  fbLocksRef.once('value', snap=>{
+    const locks = snap.val()||{};
+    Object.entries(locks).forEach(([no,lock])=>{ if(lock.expiresAt&&Date.now()>lock.expiresAt) fbLocksRef.child(no).remove(); });
+  });
+}
+
+function listenToLocks(){
+  if(!fbLocksRef) return;
+  fbLocksRef.on('value', snap=>{
+    S._locks=snap.val()||{};
+    if(!isPickerInOrder()) renderOrderList();
+  });
+}
+
+function listenToLineUpdates(){
+  if(!fbDB) return;
+  // Listen for individual line confirmations — much faster than waiting for full orders sync
+  fbDB.ref('warehouse/orders/lines').on('value', snap=>{
+    const allLines = snap.val();
+    if(!allLines || isReceiving) return;
+    let anyChange = false;
+    Object.entries(allLines).forEach(([orderNo, lines])=>{
+      const localOrder = S.orders.find(o=>o.order===orderNo);
+      if(!localOrder) return;
+      Object.entries(lines).forEach(([idx, rl])=>{
+        const i = parseInt(idx);
+        if(i >= localOrder.lines.length) return;
+        const ll = localOrder.lines[i];
+        if(rl.confirmed && !ll.confirmed){
+          Object.assign(ll, rl);
+          anyChange = true;
+        } else if(!rl.confirmed && ll.confirmed){
+          // Undo was performed on another device
+          ll.confirmed = false;
+          ll.picked = 0;
+          ll.pickedBatch = undefined;
+          ll.pickedBy = undefined;
+          ll.pickedDate = undefined;
+          ll.pickedTime = undefined;
+          ll.replacement = false;
+          ll.replacementLot = undefined;
+          ll.skipped = false;
+          anyChange = true;
+        }
+      });
+    });
+    if(anyChange){
+      localStorage.setItem('wpa3', JSON.stringify(Object.assign({},S,{_locks:{}})));
+      const mgr = document.getElementById('managerMode');
+      if(mgr && mgr.style.display!=='none') renderDash();
+      if(!isPickerInOrder()) renderOrderList();
+      else {
+        const pv = document.getElementById('orderPickingView');
+        const orderNo = pv ? pv.getAttribute('data-order') : '';
+        if(orderNo){ const order=S.orders.find(o=>o.order===orderNo); if(order) renderOrder(order); }
+      }
+    }
+  });
+}
+
+function getOrderLock(orderNo){
+  const lock=(S._locks||{})[orderNo];
+  if(!lock||Date.now()>lock.expiresAt||lock.pickedBy===S.picker) return null;
+  return lock;
+}
+
+function startListening(){
+  if(!fbRef) return;
+  listenToLocks();
+  listenToLineUpdates();
+  fbRef.on('value', snap=>{
+    const data = snap.val();
+    if(!data) return;
+    isReceiving = true;
+    try{
+      if(!data.orders || !Array.isArray(data.orders)) return;
+
+      // Case 1: New file loaded OR this device has no orders — load everything from Firebase
+      const remoteTimestamp = data.loadTimestamp||'';
+      const localTimestamp = S.loadTimestamp||'';
+      const isNewFile = remoteTimestamp && remoteTimestamp !== localTimestamp;
+      const hasNoOrders = S.orders.length===0 && data.orders.length>0;
+
+      if(hasNoOrders || isNewFile){
+        S.orders=data.orders;
+        S.drequest=data.drequest||S.drequest;
+        S.fileName=data.fileName||S.fileName;
+        S.dateLoaded=data.dateLoaded||S.dateLoaded;
+        S.loadTimestamp=remoteTimestamp||localTimestamp;
+        rebuildStock();
+        localStorage.setItem('wpa3',JSON.stringify(Object.assign({},S,{_locks:{}})));
+        renderDash();
+        renderOrderList();
+        renderCurrentFileInfo();
+        if(isNewFile){
+          setFbStatus('&#9679; New pick list received — '+data.fileName,'#155724','#f0fff8','#C3E6CB');
+          // Show alert to picker so they know new orders are available
+          const pickerMode = document.getElementById('pickerMode');
+          if(pickerMode && pickerMode.style.display!=='none' && !isPickerInOrder()){
+            // Show non-blocking notification
+            const alert = document.getElementById('pickerAlert');
+            if(alert) alert.innerHTML='<div class="al al-ok">&#9679; New pick list loaded: '+data.fileName+' — '+data.orders.length+' orders ready</div>';
+            setTimeout(()=>{ if(alert) alert.innerHTML=''; }, 5000);
+          }
+        } else {
+          setFbStatus('&#9679; Pick list loaded from sync — ready to pick','#155724','#f0fff8','#C3E6CB');
+        }
+        return;
+      }
+
+      // Case 2: Merge remote confirmed picks into local state
+      let anyChange = false;
+      data.orders.forEach(remoteOrder=>{
+        const localOrder=S.orders.find(o=>o.order===remoteOrder.order);
+        if(!localOrder) return;
+        remoteOrder.lines.forEach((rl,idx)=>{
+          if(idx>=localOrder.lines.length) return;
+          const ll=localOrder.lines[idx];
+          // Accept any confirmed line from remote that is not yet confirmed locally
+          if(rl.confirmed && !ll.confirmed){
+            Object.assign(ll,rl);
+            anyChange=true;
+          }
+        });
+      });
+
+      if(anyChange){
+        localStorage.setItem('wpa3',JSON.stringify(Object.assign({},S,{_locks:{}})));
+        // Always refresh manager dashboard when picks come in
+        const mgr=document.getElementById('managerMode');
+        if(mgr&&mgr.style.display!=='none'){
+          renderDash();
+        }
+        // Only refresh picker view if not inside an order (prevents view reset)
+        if(!isPickerInOrder()){
+          renderOrderList();
+        } else {
+          // If inside an order, update just the progress display silently
+          const pv=document.getElementById('orderPickingView');
+          const orderNo=pv?pv.getAttribute('data-order'):'';
+          if(orderNo){
+            const order=S.orders.find(o=>o.order===orderNo);
+            if(order) renderOrder(order);
+          }
+        }
+      }
+    }finally{ isReceiving=false; }
+  });
+}
+
+function pushToFirebase(){
+  if(!fbConnected||!fbDB||isReceiving) return;
+  // Write full orders state - needed for initial load on other devices
+  const payload={
+    orders:S.orders.map(o=>({
+      order:o.order, customer:o.customer, clientName:o.clientName||'',
+      drequest:o.drequest||'', dueDate:o.dueDate||'', urgent:o.urgent||false,
+      lines:o.lines.map(l=>({
+        itemNo:l.itemNo, lotNo:l.lotNo||'', desc:l.desc||'',
+        qtyToPick:l.qtyToPick||0, qtyOrdered:l.qtyOrdered||0,
+        noStock:l.noStock||false, confirmed:l.confirmed||false,
+        picked:l.picked||0, pickedBatch:l.pickedBatch||'',
+        pickedBy:l.pickedBy||'', pickedDate:l.pickedDate||'',
+        pickedTime:l.pickedTime||'', replacement:l.replacement||false,
+        replacementLot:l.replacementLot||'', skipped:l.skipped||false
+      }))
+    })),
+    drequest:S.drequest||'', fileName:S.fileName||'',
+    dateLoaded:S.dateLoaded||'', loadTimestamp:S.loadTimestamp||'', lastUpdated:new Date().toISOString(),
+    lastUpdatedBy:S.picker||'manager'
+  };
+  fbRef.set(payload).catch(err=>console.warn('Firebase push failed:',err));
+}
+
+// Push a single confirmed line immediately — faster sync, no overwrite conflicts
+function pushLineToFirebase(orderNo, lineIdx, lineData){
+  if(!fbConnected||!fbDB) return;
+  fbDB.ref('warehouse/orders/lines/'+orderNo+'/'+lineIdx).set({
+    confirmed:lineData.confirmed||false,
+    picked:lineData.picked||0,
+    pickedBatch:lineData.pickedBatch||'',
+    pickedBy:lineData.pickedBy||'',
+    pickedDate:lineData.pickedDate||'',
+    pickedTime:lineData.pickedTime||'',
+    replacement:lineData.replacement||false,
+    replacementLot:lineData.replacementLot||'',
+    skipped:lineData.skipped||false
+  }).catch(()=>{});
+}
+
+function pushPickListToFirebase(){
+  if(!fbConnected||!fbRef) return;
+  // Store load timestamp so other tablets know a new file was loaded
+  S.loadTimestamp = new Date().toISOString();
+  pushToFirebase();
+  updateSyncStatus('Synced ✓','#1D9E75');
+  setFbStatus('&#9679; Pick list synced to all tablets','#155724','#f0fff8','#C3E6CB');
+}
+
+function refreshCurrentView(){
+  // Only refresh manager panels if manager mode is showing
+  const mgr=document.getElementById('managerMode');
+  if(mgr&&mgr.style.display!=='none'){
+    ['pDash','pSumm','pStats'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el&&el.style.display!=='none'){
+        if(id==='pDash') renderDash();
+        if(id==='pSumm') renderSumm();
+        if(id==='pStats') renderStats();
+      }
+    });
+    return; // don't touch picker view
+  }
+  // In picker mode — only refresh order list if on selection screen
+  const selectView=document.getElementById('orderSelectView');
+  if(selectView&&selectView.style.display!=='none'){
+    renderOrderList();
+    return;
+  }
+  // If picker is inside an order — refresh just that order
+  const pv=document.getElementById('orderPickingView');
+  if(pv&&pv.style.display!=='none'){
+    const orderNo=pv.getAttribute('data-order')||'';
+    if(orderNo){ const order=S.orders.find(o=>o.order===orderNo); if(order) renderOrder(order); }
+  }
+}
+
+
+// ── Order History ────────────────────────────────────────────────────────────
+
+function renderHistory(){
+  if(!S.history) S.history=[];
+  const dateFilter=(document.getElementById('historyDateFilter')||{}).value||'all';
+
+  // Build date dropdown
+  const allDates=[...new Set(S.history.map(h=>h.archivedDate).filter(Boolean))].sort().reverse();
+  const sel=document.getElementById('historyDateFilter');
+  if(sel){
+    const cur=sel.value;
+    sel.innerHTML='<option value="all">All days</option>'+
+      allDates.map(d=>`<option value="${d}" ${d===cur?'selected':''}>${formatDateNice(d)}</option>`).join('');
+  }
+
+  const filtered=dateFilter==='all'?S.history:S.history.filter(h=>h.archivedDate===dateFilter);
+
+  // KPI cards
+  const totalOrders=filtered.length;
+  const totalLines=filtered.reduce((s,h)=>s+h.lines.length,0);
+  const totalQty=filtered.reduce((s,h)=>s+h.lines.reduce((ss,l)=>ss+(l.picked||0),0),0);
+  const pickers=[...new Set(filtered.flatMap(h=>h.lines.map(l=>l.pickedBy).filter(Boolean)))];
+  const replacements=filtered.reduce((s,h)=>s+h.lines.filter(l=>l.replacement).length,0);
+
+  document.getElementById('historyCards').innerHTML=`
+    <div class="stats-kpi"><div class="kv">${totalOrders}</div><div class="kl">Orders completed</div></div>
+    <div class="stats-kpi"><div class="kv">${totalLines}</div><div class="kl">Lines picked</div></div>
+    <div class="stats-kpi"><div class="kv">${totalQty.toLocaleString()}</div><div class="kl">Total units</div></div>
+    <div class="stats-kpi"><div class="kv">${pickers.length}</div><div class="kl">Pickers involved</div></div>
+    <div class="stats-kpi"><div class="kv" style="color:${replacements>0?'#e65100':'#1D9E75'}">${replacements}</div><div class="kl">Replacement lots</div></div>`;
+
+  if(!filtered.length){
+    document.getElementById('historyTable').innerHTML='<div style="text-align:center;color:#aaa;padding:30px;font-size:13px">No completed orders yet. Orders are archived here once all lines are picked.</div>';
+    return;
+  }
+
+  // Build table - one row per completed order
+  const rows=filtered.slice().reverse().map(h=>{
+    const pickerNames=[...new Set(h.lines.map(l=>l.pickedBy).filter(Boolean))].join(', ')||'—';
+    const totalPicked=h.lines.reduce((s,l)=>s+(l.picked||0),0);
+    const hasReplacement=h.lines.some(l=>l.replacement);
+    const hasSkipped=h.lines.some(l=>l.skipped);
+    const completedTime=h.lines.filter(l=>l.pickedTime).sort((a,b)=>b.pickedTime>a.pickedTime?1:-1)[0];
+    return `<tr>
+      <td><strong>${h.order}</strong>${h.urgent?'<span class="badge b-urgent" style="margin-left:4px;font-size:10px">URGENT</span>':''}</td>
+      <td>${h.customer}<br><span style="font-size:11px;color:#666">${h.clientName||''}</span></td>
+      <td style="font-size:12px">${formatDateNice(h.archivedDate)}</td>
+      <td style="text-align:center">${h.lines.length}</td>
+      <td style="text-align:center;font-weight:700;color:#1D9E75">${totalPicked.toLocaleString()}</td>
+      <td style="font-size:12px">${pickerNames}</td>
+      <td style="font-size:11px">${completedTime?completedTime.pickedDate+' '+completedTime.pickedTime:'—'}</td>
+      <td>
+        ${hasReplacement?'<span class="badge b-rep" style="margin-right:4px">Replacement lot</span>':''}
+        ${hasSkipped?'<span class="badge" style="background:#e0e0e0;color:#555">Items skipped</span>':''}
+        ${!hasReplacement&&!hasSkipped?'<span class="badge b-done">Clean pick</span>':''}
+      </td>
+      <td>
+        <button class="btn-sm" style="background:#E6F1FB;color:#0C447C;border:1px solid #B5D4F4" onclick="viewHistoryOrder('${h.order}','${h.archivedAt}')">View</button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('historyTable').innerHTML=`<div style="overflow-x:auto"><table>
+    <thead><tr>
+      <th>Order</th><th>Customer</th><th>Date completed</th>
+      <th style="text-align:center">Lines</th><th style="text-align:center">Units picked</th>
+      <th>Picker(s)</th><th>Completed at</th><th>Status</th><th></th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table></div>`;
+}
+
+function viewHistoryOrder(orderNo, archivedAt){
+  if(!S.history) return;
+  const h=S.history.find(x=>x.order===orderNo&&x.archivedAt===archivedAt);
+  if(!h){ alert('Order not found in history.'); return; }
+  // Show in invoice modal
+  renderInvoiceContent(h);
+  document.getElementById('invoiceModal').classList.add('open');
+}
+
+function exportHistoryCSV(){
+  if(!S.history||!S.history.length){ alert('No history to export yet.'); return; }
+  const headers=['Date','Order','Customer','Client','Item No','Description','Lot No','Qty Ordered','Qty Picked','Picker','Picked At','Replacement','Skipped'];
+  const rows=[];
+  S.history.forEach(h=>{
+    h.lines.forEach(l=>{
+      rows.push([
+        h.archivedDate, h.order, h.customer, h.clientName||'',
+        l.itemNo, '"'+(l.desc||'').replace(/"/g,'""')+'"',
+        l.replacementLot||l.pickedBatch||l.lotNo,
+        l.qtyOrdered||l.qtyToPick||0, l.picked||0,
+        l.pickedBy||'—', (l.pickedDate||'')+(l.pickedTime?' '+l.pickedTime:''),
+        l.replacement?'Yes':'No', l.skipped?'Yes':'No'
+      ].join(','));
+    });
+  });
+  const csv=[headers.join(','),...rows].join('\n');
+  const blob=new Blob([csv],{type:'text/csv'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download='order-history-'+tod()+'.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+
+// ── Current file info for Load tab ───────────────────────────────────────────
+function renderCurrentFileInfo(){
+  const infoBox = document.getElementById('currentFileInfo');
+  const nameEl = document.getElementById('currentFileName');
+  const dateEl = document.getElementById('currentFileDate');
+  const ordersEl = document.getElementById('currentFileOrders');
+  if(!infoBox) return;
+
+  if(S.fileName && S.orders && S.orders.length > 0){
+    infoBox.style.display = 'block';
+    nameEl.textContent = S.fileName;
+    const loadedAt = S.dateLoaded
+      ? new Date(S.dateLoaded).toLocaleString('en-ZA',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})
+      : '—';
+    const dreqFmt = S.drequest
+      ? new Date(S.drequest).toLocaleDateString('en-ZA',{weekday:'short',day:'2-digit',month:'long',year:'numeric'})
+      : '—';
+    dateEl.innerHTML = `Loaded: <strong>${loadedAt}</strong> &nbsp;|&nbsp; Request date: <strong>${dreqFmt}</strong>`;
+    const done = S.orders.filter(o=>o.lines.every(l=>l.confirmed)).length;
+    const total = S.orders.length;
+    ordersEl.textContent = done + '/' + total + ' complete';
+
+    // Also restore the upload zone to show the file was loaded
+    const zone = document.getElementById('uploadZone');
+    if(zone && !zone.querySelector('.uz-title').textContent.includes('loaded successfully')){
+      zone.innerHTML = `<div class="uz-icon">&#10003;</div><div class="uz-title" style="color:#1D9E75">${S.fileName} — loaded</div><div class="uz-sub">Click or drag a new file to replace</div>`;
+    }
+  } else {
+    infoBox.style.display = 'none';
+    // Reset upload zone to default
+    const zone = document.getElementById('uploadZone');
+    if(zone){
+      zone.innerHTML = '<div class="uz-icon">&#128196;</div><div class="uz-title">Click to upload or drag &amp; drop your Excel file</div><div class="uz-sub">Accepts .xlsx files</div>';
+    }
+  }
+}
+
+</script>
+</body>
+</html>
