@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Continental Brands Warehouse Picking App</title>
+<title>Continental Brands Warehouse Picking App v2.5</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:Arial,sans-serif;background:#f4f6f9;color:#222;min-height:100vh}
@@ -874,14 +874,41 @@ function toggleRep(o,i){const b=document.getElementById(`rb_${o}_${i}`);b.style.
 function confirmLine(orderNo,idx){
   const order=S.orders.find(o=>o.order===orderNo); if(!order) return;
   const line=order.lines[idx];
-  const qty=parseInt(document.getElementById(`q_${orderNo}_${idx}`).value)||0;
+  const qtyRaw = document.getElementById(`q_${orderNo}_${idx}`).value;
+  const qty = qtyRaw===''||qtyRaw===null||qtyRaw===undefined ? -1 : parseInt(qtyRaw);
   const batch=document.getElementById(`b_${orderNo}_${idx}`).value.trim()||line.lotNo;
-  if(qty<0){alert('Please enter a valid quantity (0 or more).');return;}
+  if(isNaN(qty)||qty<0){alert('Please enter a valid quantity (0 or more).');return;}
   if(qty===0&&!confirm('You entered 0 — confirm this item was not picked (qty = 0)?')) return;
   if(qty>line.qtyToPick&&!confirm(`You entered ${qty} but only ${line.qtyToPick} required. Continue?`)) return;
+  // If picker picked LESS than required — ask if they want to keep remainder open
+  if(qty>0 && qty<line.qtyToPick){
+    const remaining = line.qtyToPick - qty;
+    const keepOpen = confirm(`You picked ${qty} but ${line.qtyToPick} were required.\n\nClick OK to mark ${remaining} remaining as STILL TO PICK (creates a new open line).\nClick Cancel to close this line completely with ${qty} picked.`);
+    if(keepOpen){
+      // Split: confirm current line with qty picked, add new open line for remainder
+      const sk2=line.itemNo+'__'+line.lotNo;
+      if(S.stock[sk2]) S.stock[sk2].available=Math.max(0,S.stock[sk2].available-qty);
+      Object.assign(line,{picked:qty,pickedBatch:batch,confirmed:true,replacement:false,
+        pickedBy:S.picker,pickedDate:S.pdate||tod(),pickedTime:nowt(),stockKey:sk2,
+        qtyToPick:qty, qtyOrdered:line.qtyOrdered});
+      // Add a new pending line for the remainder
+      const newLine = {
+        itemNo:line.itemNo, desc:line.desc, lotNo:line.lotNo, lotQty:line.lotQty,
+        qtyToPick:remaining, qtyOrdered:line.qtyOrdered,
+        picked:0, confirmed:false, replacement:false, noStock:false,
+        isRemainder:true, remainderOf:orderNo
+      };
+      const lineIdx = order.lines.indexOf(line);
+      order.lines.splice(lineIdx+1, 0, newLine);
+      if(fbConnected) pushLineToFirebase(orderNo, lineIdx, line);
+      sv(); renderOrder(order); renderOrderList();
+      archiveIfComplete(order);
+      return;
+    }
+  }
   const sk=line.itemNo+'__'+line.lotNo;
   if(S.stock[sk]) S.stock[sk].available=Math.max(0,S.stock[sk].available-qty);
-  Object.assign(line,{picked:qty,pickedBatch:batch,confirmed:true,replacement:false,pickedBy:S.picker,pickedDate:S.pdate||tod(),pickedTime:nowt()});
+  Object.assign(line,{picked:qty,pickedBatch:batch,confirmed:true,replacement:false,pickedBy:S.picker,pickedDate:S.pdate||tod(),pickedTime:nowt(),stockKey:sk});
   // Push this specific line to Firebase immediately for fast sync
   if(fbConnected) pushLineToFirebase(orderNo, idx, line);
   sv(); renderOrder(order); renderOrderList();
@@ -947,13 +974,12 @@ function undoLine(orderNo,idx){
   const order=S.orders.find(o=>o.order===orderNo); if(!order) return;
   const line=order.lines[idx];
   if(!confirm(`Undo pick for ${line.itemNo} — ${line.desc}? This will restore the stock.`)) return;
-  // Restore stock — add back the qty that was picked
+  // Restore stock — use the exact same key that was used when confirming
   if(!line.skipped && !line.noStock && line.picked>0){
-    const sk=line.itemNo+'__'+line.lotNo;
+    const sk = line.stockKey || (line.itemNo+'__'+line.lotNo);
     if(S.stock[sk]){
       S.stock[sk].available = S.stock[sk].available + line.picked;
     } else {
-      // Stock entry doesn't exist — recreate it
       S.stock[sk] = {itemNo:line.itemNo, desc:line.desc, lotNo:line.lotNo, warehouse:'FGWHOUSE', available:line.picked};
     }
   }
@@ -967,6 +993,7 @@ function undoLine(orderNo,idx){
   line.replacement=false;
   line.replacementLot=undefined;
   line.skipped=false;
+  line.stockKey=undefined;
   // Push undone line to Firebase explicitly with confirmed:false
   if(fbConnected && fbDB){
     fbDB.ref('warehouse/orders/lines/'+orderNo+'/'+idx).set({
