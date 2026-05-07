@@ -250,6 +250,7 @@ td{padding:8px 10px;border-bottom:1px solid #f0f0f0;vertical-align:middle}
     <div class="pibar">
       <span>Picker: <strong id="dName"></strong></span>
       <span>Date: <strong id="dDate"></strong></span>
+      <span id="syncBadge" style="background:#f0a500;color:#fff;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700">⟳ Connecting...</span>
       <span style="margin-left:auto;cursor:pointer;color:#E24B4A;font-size:12px" onclick="signOut()">Sign out</span>
     </div>
     <input type="hidden" id="orderSearch" value="">
@@ -875,7 +876,8 @@ function confirmLine(orderNo,idx){
   const line=order.lines[idx];
   const qty=parseInt(document.getElementById(`q_${orderNo}_${idx}`).value)||0;
   const batch=document.getElementById(`b_${orderNo}_${idx}`).value.trim()||line.lotNo;
-  if(qty<=0){alert('Please enter a valid quantity.');return;}
+  if(qty<0){alert('Please enter a valid quantity (0 or more).');return;}
+  if(qty===0&&!confirm('You entered 0 — confirm this item was not picked (qty = 0)?')) return;
   if(qty>line.qtyToPick&&!confirm(`You entered ${qty} but only ${line.qtyToPick} required. Continue?`)) return;
   const sk=line.itemNo+'__'+line.lotNo;
   if(S.stock[sk]) S.stock[sk].available=Math.max(0,S.stock[sk].available-qty);
@@ -960,8 +962,20 @@ function undoLine(orderNo,idx){
   line.replacement=false;
   line.replacementLot=undefined;
   line.skipped=false;
-  // Push undone line to Firebase
-  if(fbConnected) pushLineToFirebase(orderNo, idx, line);
+  // Push undone line to Firebase explicitly with confirmed:false
+  if(fbConnected && fbDB){
+    fbDB.ref('warehouse/orders/lines/'+orderNo+'/'+idx).set({
+      confirmed: false,
+      picked: 0,
+      pickedBatch: '',
+      pickedBy: '',
+      pickedDate: '',
+      pickedTime: '',
+      replacement: false,
+      replacementLot: '',
+      skipped: false
+    }).catch(()=>{});
+  }
   // Remove from history if order was previously complete
   removeFromHistory(order.order);
   sv(); renderOrder(order); renderOrderList();
@@ -1871,6 +1885,18 @@ function loadFirebaseConfig(){
         fbConnected = true;
         setFbStatus('&#9679; Live sync — all tablets connected','#155724','#f0fff8','#C3E6CB');
         updateSyncStatus('Live sync ●','#1D9E75');
+        // Test write to confirm Firebase is working
+        fbDB.ref('warehouse/heartbeat').set({
+          device: navigator.userAgent.substring(0,50),
+          time: new Date().toISOString(),
+          orders: S.orders.length
+        }).then(()=>{
+          console.log('Firebase write test: OK');
+        }).catch(err=>{
+          console.error('Firebase write test FAILED:', err);
+          updateSyncStatus('Sync error - check rules','#E24B4A');
+          setFbStatus('&#9888; Firebase write blocked — check database rules in Firebase Console','#721C24','#F8D7DA','#F5C6CB');
+        });
         startListening();
         cleanStaleLocks();
         loadHistoryFromFirebase();
@@ -1895,6 +1921,13 @@ function setFbStatus(msg, textColor, bg, border){
 function updateSyncStatus(text, color){
   const el = document.getElementById('syncStatusText');
   if(el){ el.textContent=text; el.style.color=color; }
+  // Also update badge on picker screen
+  const badge = document.getElementById('syncBadge');
+  if(badge){
+    badge.textContent = text;
+    badge.style.background = color;
+    badge.style.color = '#fff';
+  }
 }
 
 function lockOrder(orderNo){
