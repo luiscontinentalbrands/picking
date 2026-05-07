@@ -947,10 +947,15 @@ function undoLine(orderNo,idx){
   const order=S.orders.find(o=>o.order===orderNo); if(!order) return;
   const line=order.lines[idx];
   if(!confirm(`Undo pick for ${line.itemNo} — ${line.desc}? This will restore the stock.`)) return;
-  // Restore stock if it was deducted
-  if(!line.skipped && !line.noStock){
+  // Restore stock — add back the qty that was picked
+  if(!line.skipped && !line.noStock && line.picked>0){
     const sk=line.itemNo+'__'+line.lotNo;
-    if(S.stock[sk]) S.stock[sk].available=Math.min(S.stock[sk].available+(line.picked||0), line.lotQty);
+    if(S.stock[sk]){
+      S.stock[sk].available = S.stock[sk].available + line.picked;
+    } else {
+      // Stock entry doesn't exist — recreate it
+      S.stock[sk] = {itemNo:line.itemNo, desc:line.desc, lotNo:line.lotNo, warehouse:'FGWHOUSE', available:line.picked};
+    }
   }
   // Reset line back to pending
   line.confirmed=false;
