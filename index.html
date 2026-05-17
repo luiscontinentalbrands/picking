@@ -875,10 +875,10 @@ function confirmLine(orderNo,idx){
   const order=S.orders.find(o=>o.order===orderNo); if(!order) return;
   const line=order.lines[idx];
   const qtyRaw = document.getElementById(`q_${orderNo}_${idx}`).value;
-  const qty = qtyRaw===''||qtyRaw===null||qtyRaw===undefined ? -1 : parseInt(qtyRaw);
+  const qty = (qtyRaw===''||qtyRaw===null||qtyRaw===undefined) ? 0 : parseInt(qtyRaw);
   const batch=document.getElementById(`b_${orderNo}_${idx}`).value.trim()||line.lotNo;
   if(isNaN(qty)||qty<0){alert('Please enter a valid quantity (0 or more).');return;}
-  if(qty===0&&!confirm('You entered 0 — confirm this item was not picked (qty = 0)?')) return;
+  if(qty===0&&!confirm('You entered 0 qty — confirm this item was NOT picked?')) return;
   if(qty>line.qtyToPick&&!confirm(`You entered ${qty} but only ${line.qtyToPick} required. Continue?`)) return;
   // If picker picked LESS than required — ask if they want to keep remainder open
   if(qty>0 && qty<line.qtyToPick){
