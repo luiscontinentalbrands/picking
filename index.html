@@ -495,6 +495,15 @@ td{padding:8px 10px;border-bottom:1px solid #f0f0f0;vertical-align:middle}
 </div>
 
 <script>
+// Firebase globals — declared first so all functions can access them
+let fbDB = null;
+let fbConnected = false;
+let fbRef = null;
+let fbLocksRef = null;
+let isReceiving = false;
+let currentLockedOrder = null;
+const LOCK_TIMEOUT_MS = 5 * 60 * 1000;
+
 const SAMPLE=[
 {"order":"127325","customer":"000S52","clientName":"Pick n Pay Sandton","dueDate":"2026-03-31","urgent":false,"lines":[{"itemNo":"16506","desc":"TASTY TREATS CHEZZY BITES 6 PACK SPRING ONION","lotNo":"10092017","lotQty":24,"qtyToPick":10,"qtyOrdered":10,"picked":0,"confirmed":false,"replacement":false}]},
 {"order":"127347","customer":"000G004","clientName":"Shoprite Centurion","dueDate":"2026-03-31","urgent":true,"lines":[{"itemNo":"12858","desc":"TT CRACKER MIX 400G","lotNo":"02062018","lotQty":40,"qtyToPick":28,"qtyOrdered":28,"picked":0,"confirmed":false,"replacement":false},{"itemNo":"16506","desc":"TASTY TREATS CHEZZY BITES 6 PACK SPRING ONION","lotNo":"10092017","lotQty":24,"qtyToPick":17,"qtyOrdered":17,"picked":0,"confirmed":false,"replacement":false}]},
@@ -1892,19 +1901,12 @@ const FB_CONFIG = {
   appId: "1:805612086967:web:906f33132f813caee90f32"
 };
 
-let fbDB = null;
-let fbConnected = false;
-
 // Returns true if picker is currently inside an order (not on selection screen)
 function isPickerInOrder(){
   const pv = document.getElementById('orderPickingView');
   return pv && pv.style.display !== 'none';
 }
-let fbRef = null;
-let fbLocksRef = null;
-let isReceiving = false;
-let currentLockedOrder = null;
-const LOCK_TIMEOUT_MS = 5 * 60 * 1000;
+// LOCK_TIMEOUT_MS declared at top of script
 
 function loadFirebaseConfig(){
   try{
