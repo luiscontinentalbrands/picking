@@ -971,13 +971,37 @@ async function fetchRepoHistory(){
     return (j&&Array.isArray(j.snapshots)&&j.snapshots.length)?j.snapshots:null;
   }catch(e){ return null; }
 }
+// ---- IMPACT LOG: computed the moment a new report loads (both reports fully in memory), stored tiny ----
+const K_IMPACT="cb_impact_log";
+function computeImpact(prevLines, prevState, newLines, newLoadedAt, prevLoadedAt){
+  try{
+    const isGT=l=>((l.region||"")+"").toLowerCase().indexOf("gauteng")>-1;
+    const newIds=new Set(newLines.filter(isGT).map(l=>l.id));
+    let resTot=0,resGone=0,untTot=0,untGone=0,tot=0,soh=0;
+    prevLines.filter(isGT).forEach(l=>{ tot++; soh+=(l.soh||0);
+      const r=prevState[l.id];
+      const resolved=r&&((r.status==="Resolved"&&(r.resolvedAt||r.updatedAt||0)>0)||(r.repeatLog||[]).length>0);
+      const untouched=!r||((!r.feedback||!r.feedback.trim())&&r.status==="Not Started"&&!(r.updatedAt)&&!(r.repeatLog&&r.repeatLog.length));
+      const gone=!newIds.has(l.id);
+      if(resolved){ resTot++; if(gone)resGone++; }
+      else if(untouched){ untTot++; if(gone)untGone++; }
+    });
+    if(!tot) return;
+    let log=[]; try{ const raw=cacheGet(K_IMPACT); if(raw) log=JSON.parse(raw)||[]; }catch(e){}
+    if(log.some(e=>e.t===newLoadedAt)) return;   // already recorded for this report
+    log.push({t:newLoadedAt, prevT:prevLoadedAt||0, prevN:tot, prevSoh:soh, resTot,resGone,untTot,untGone});
+    log=log.slice(-26);
+    sSet(K_IMPACT, JSON.stringify(log), true);
+  }catch(e){}
+}
 function slimSnap(sn){
   if(!sn) return sn;
   if(!sn.lines) return sn; // already a summary
   const ln=sn.lines; const sk=new Set(), st=new Set(); let soh=0;
   ln.forEach(l=>{ sk.add(l.sku||l.art); st.add(l.store); soh+=(l.soh||0); });
+  const reg={}; ln.forEach(l=>{ const k=l.region||"Other"; const o=reg[k]||(reg[k]={n:0,soh:0}); o.n++; o.soh+=(l.soh||0); });
   return {tag:sn.tag, source:sn.source, loadedAt:sn.loadedAt, loadedBy:sn.loadedBy,
-          n:ln.length, soh, skuN:sk.size, storeN:st.size, verify:sn.verify||null, summary:true};
+          n:ln.length, soh, skuN:sk.size, storeN:st.size, reg, verify:sn.verify||null, summary:true};
 }
 async function persistHistory(){
   let arr=history.slice(-13);
@@ -2096,7 +2120,7 @@ function renderPickerList(q){
     html+=`<button class="pkrow ${active?'active':''}" data-v="${encodeURIComponent(d.nm)}"><span class="sdot ${dot}"></span><span class="pkinfo">${sub}<span class="pknm">${d.nm}</span></span>${st}</button>`; });
   html+=impactHTML;   // Economic impact moved to the end of Insights
   // ---- Section menu (sticky) — built from the sections actually present ----
-  const insMenu=[["ins-fbopen","✍ Not closed"],["ins-supply","📦 Supply"],["ins-redalert","🚨 Red alert"],["ins-team","👥 Team"],["ins-worst","📉 Worst reps"],["ins-chronic","♻ Chronic"],["ins-stores","🏬 Stores"],["ins-history","📈 History"],["ins-range","📋 Range"],["ins-impact","💰 Value at risk"]].filter(x=>html.indexOf('id="'+x[0]+'"')>-1);
+  const insMenu=[["ins-appimpact","🎯 Impact"],["ins-fbopen","✍ Not closed"],["ins-supply","📦 Supply"],["ins-redalert","🚨 Red alert"],["ins-team","👥 Team"],["ins-worst","📉 Worst reps"],["ins-chronic","♻ Chronic"],["ins-stores","🏬 Stores"],["ins-history","📈 History"],["ins-range","📋 Range"],["ins-impact","💰 Value at risk"]].filter(x=>html.indexOf('id="'+x[0]+'"')>-1);
   if(insMenu.length>1){
     html=`<div style="position:sticky;top:0;z-index:5;background:var(--paper,#faf7f2);padding:8px 0 10px;margin:0 0 6px;display:flex;gap:7px;overflow-x:auto;-webkit-overflow-scrolling:touch;border-bottom:1px solid var(--hair)">${insMenu.map(x=>`<button onclick="var e=document.getElementById('${x[0]}');if(e)e.scrollIntoView({behavior:'smooth',block:'start'})" style="flex:none;padding:7px 12px;border-radius:999px;border:1px solid var(--hair);background:#fff;font-family:Archivo;font-weight:700;font-size:11.5px;color:var(--ink-soft);cursor:pointer">${x[1]}</button>`).join('')}</div>`+html;
   }
@@ -2465,6 +2489,38 @@ function renderInsights(){
       supArr.forEach(g=>{ html+=`<div style="font-size:12px;padding:6px 0;border-top:1px dashed var(--hair)"><b>${escC(g.sku)}</b>${g.banner?` · ${escC(g.banner)}`:""} — <b>${g.stores.length}</b> store${g.stores.length>1?"s":""}${g.by?` · marked by ${escC(g.by)}`:""}<div style="color:#948e84;margin-top:2px">${g.stores.slice(0,6).map(escC).join(", ")}${g.stores.length>6?` +${g.stores.length-6} more`:""}</div></div>`; });
       html+=`</div>`;
     }
+    // 🎯 IMPACT — is the app moving store execution? (Gauteng pilot)
+    try{
+      const isGT=l=>((l.region||"")+"").toLowerCase().indexOf("gauteng")>-1;
+      const snaps=history.slice().sort((a,b)=>(a.loadedAt||0)-(b.loadedAt||0));
+      const gtOf=sn=>{ if(sn.lines){ const gl=sn.lines.filter(isGT); return {n:gl.length, soh:gl.reduce((a,l)=>a+(l.soh||0),0), exact:true}; }
+        if(sn.reg){ const g=Object.keys(sn.reg).find(k=>k.toLowerCase().indexOf("gauteng")>-1); if(g) return {n:sn.reg[g].n, soh:sn.reg[g].soh, exact:true}; }
+        return {n:sn.n||0, soh:sn.soh||0, exact:false}; };
+      const trend=snaps.map(sn=>Object.assign({t:sn.loadedAt||0}, gtOf(sn))).filter(x=>x.n>0);
+      let impactHtml="";
+      if(trend.length>=2){
+        const first=trend[0], last=trend[trend.length-1];
+        const dN=last.n-first.n, dS=last.soh-first.soh;
+        const arrow=v=>v<0?`<b style="color:var(--ok)">▼ ${Math.abs(v).toLocaleString('en-ZA')}</b>`:v>0?`<b style="color:var(--p1)">▲ ${v.toLocaleString('en-ZA')}</b>`:"<b>—</b>";
+        const approx=(!first.exact||!last.exact)?` <span style="color:#948e84">(older reports counted network-wide — Gauteng-only split kept from now on)</span>`:"";
+        impactHtml+=`<div class="cmetric"><b>Problem lines in the Izon report:</b> ${first.n.toLocaleString('en-ZA')} → ${last.n.toLocaleString('en-ZA')} ${arrow(dN)} · <b>Units stuck:</b> ${first.soh.toLocaleString('en-ZA')} → ${last.soh.toLocaleString('en-ZA')} ${arrow(dS)} <span style="color:#948e84">(first vs latest report)</span>${approx}</div>`;
+      } else {
+        impactHtml+=`<div class="cmetric" style="color:#948e84">Trend appears once two reports are on record.</div>`;
+      }
+      let ilog=[]; try{ const raw=cacheGet(K_IMPACT); if(raw) ilog=JSON.parse(raw)||[]; }catch(e){}
+      const last=ilog.length?ilog[ilog.length-1]:null;
+      if(last && last.resTot>=10 && last.untTot>=10){
+        const rPct=Math.round(100*last.resGone/last.resTot), uPct=Math.round(100*last.untGone/last.untTot), lift=rPct-uPct;
+        impactHtml+=`<div class="cmetric" style="margin-top:8px"><b>The proof test (last two reports):</b> of the Gauteng lines reps RESOLVED, <b style="color:var(--ok)">${rPct}%</b> left the next Izon report (started selling again) vs <b>${uPct}%</b> of untouched lines that fixed themselves. `+
+          (lift>0?`Working a line makes it <b style="color:var(--ok)">${lift} points more likely</b> to exit the problem report — measurable impact, judged by the retailer's own data.`:`No lift measured on this pair yet — watch this after a full week of proper closes.`)+`</div>
+          <div style="font-size:11px;color:#948e84;margin-top:6px">Resolved group: ${last.resTot} lines (${last.resGone} exited) · Untouched group: ${last.untTot} (${last.untGone} exited) · recorded ${new Date(last.t).toLocaleDateString('en-ZA',{day:'2-digit',month:'short'})}</div>`;
+      } else if(last){
+        impactHtml+=`<div class="cmetric" style="margin-top:8px;color:#948e84">Proof test recorded, but needs at least 10 properly closed Gauteng lines between two reports (currently ${last.resTot}) — it fills in automatically as closes accumulate.</div>`;
+      } else {
+        impactHtml+=`<div class="cmetric" style="margin-top:8px;color:#948e84">The resolved-vs-untouched proof test is captured automatically the next time a ZIP is loaded.</div>`;
+      }
+      html+=`<div id="ins-appimpact"></div><div class="ccard" style="border-left:4px solid var(--ok)"><div class="ctitle"><span class="light ok"></span>🎯 Impact — Gauteng pilot</div>${impactHtml}</div>`;
+    }catch(e){}
     // ✍ FEEDBACK WRITTEN BUT NOT CLOSED — work done that isn't being counted (the Kamogelo case)
     const fbOpen={}; let fbTotal=0;
     analysisLines().forEach(l=>{ const r=state[l.id]; if(!r||r.excluded) return;
@@ -3278,7 +3334,10 @@ function parseFile(file){
       dataset={source:file.name, loadedAt:Date.now(), loadedBy:lastName||"", lines};
       history.push({source:dataset.source, loadedAt:dataset.loadedAt, loadedBy:dataset.loadedBy, lines:dataset.lines});
       await persistHistory();
-      const prev=state; const prevLines=LINES; LINES=dataset.lines; absorbOrphans(prev,prevLines); state=hydrate(prev); autoAssignReps();
+      const prev=state; const prevLines=LINES;
+      const prevAt=(latestSnapshot()&&latestSnapshot().loadedAt)||0;
+      computeImpact(prevLines||[], prev||{}, dataset.lines, dataset.loadedAt, prevAt);
+      LINES=dataset.lines; absorbOrphans(prev,prevLines); state=hydrate(prev); autoAssignReps();
       const nRep=detectRepeats(dataset.loadedAt); await persistTrack();
       const repNote=nRep?" 🚨 "+nRep+" RED ALERT repeat issue"+(nRep>1?"s":"")+" — closed lines that came back 10+ days later; reopened & flagged.":"";
       render(); if(fsReady && shareFails===0){ mMsg("Loaded "+lines.length+" lines from "+file.name+"."+repNote+" ✓ Synced live to the whole team.","ok"); } else { mMsg("⚠ Loaded "+lines.length+" lines — BUT SAVED ON THIS DEVICE ONLY. The team can not see it. Check internet, then tap 'Sync to team now'.","err"); }
@@ -3749,7 +3808,10 @@ async function parseIzonZip(file){
     history.push({tag:"IZON-"+(res.META.reportDate||Date.now()), source:dataset.source, loadedAt:dataset.loadedAt, loadedBy:dataset.loadedBy, lines:dataset.lines, mf:res.mf, verify:{totalLines:res.verify.totalLines,byCat:res.verify.byCat,reportDate:res.verify.reportDate}});
     await persistHistory();
     adoptMF(res.mf);
-    const prev=state; const prevLines=LINES; LINES=dataset.lines; absorbOrphans(prev,prevLines); state=hydrate(prev); autoAssignReps();
+    const prev=state; const prevLines=LINES;
+    const prevAtZ=(latestSnapshot()&&latestSnapshot().loadedAt)||0;
+    computeImpact(prevLines||[], prev||{}, dataset.lines, dataset.loadedAt, prevAtZ);
+    LINES=dataset.lines; absorbOrphans(prev,prevLines); state=hydrate(prev); autoAssignReps();
     const nRepZ=detectRepeats(dataset.loadedAt); await persistTrack();
     if(nRepZ) mMsg("🚨 "+nRepZ+" RED ALERT repeat issue"+(nRepZ>1?"s":"")+" detected — closed lines that came back; reopened & flagged.","err");
     render(); renderZipVerify(res.verify);
