@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Continental Brands Warehouse Picking App v2.5</title>
+<title>Continental Brands Warehouse Picking App v2.6</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:Arial,sans-serif;background:#f4f6f9;color:#222;min-height:100vh}
@@ -1042,10 +1042,12 @@ function removeFromHistory(orderNo){
 function confirmReplacement(orderNo,idx){
   const order=S.orders.find(o=>o.order===orderNo); if(!order) return;
   const line=order.lines[idx];
-  const qty=parseInt(document.getElementById(`q_${orderNo}_${idx}`).value)||0;
+  const qtyRaw = document.getElementById(`q_${orderNo}_${idx}`).value;
+  const qty = (qtyRaw===''||qtyRaw===null||qtyRaw===undefined) ? 0 : parseInt(qtyRaw);
   const repLot=document.getElementById(`rl_${orderNo}_${idx}`).value.trim();
   if(!repLot){alert('Please enter a replacement lot number.');return;}
-  if(qty<=0){alert('Please enter a valid quantity.');return;}
+  if(isNaN(qty)||qty<0){alert('Please enter a valid quantity (0 or more).');return;}
+  if(qty===0&&!confirm('You entered 0 qty — confirm this item was NOT picked from the replacement lot?')) return;
   Object.assign(line,{picked:qty,pickedBatch:repLot,replacementLot:repLot,confirmed:true,replacement:true,pickedBy:S.picker,pickedDate:S.pdate||tod(),pickedTime:nowt()});
   if(fbConnected) pushLineToFirebase(orderNo, idx, line);
   sv(); renderOrder(order); renderOrderList();
